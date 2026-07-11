@@ -32,6 +32,7 @@ type Row = {
   state: string | null;
   account_status: AccountStatus;
   created_at: string;
+  subscriptions?: { status: string | null; current_period_end: string | null } | null;
 };
 
 const statusStyle: Record<string, string> = {
