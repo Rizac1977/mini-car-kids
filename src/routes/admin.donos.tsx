@@ -11,6 +11,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { dateBR } from "@/lib/mock-data";
 import type { AccountStatus } from "@/hooks/use-auth";
 import { AdminShell } from "./admin.index";
+import { ApproveOwnerDialog } from "@/components/approve-owner-dialog";
 
 export const Route = createFileRoute("/admin/donos")({
   head: () => ({
