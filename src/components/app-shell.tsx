@@ -15,9 +15,9 @@ import { cn } from "@/lib/utils";
 
 const mobileNav = [
   { to: "/app", label: "Início", icon: Home, exact: true },
-  { to: "/app/veiculos", label: "Veículos", icon: Car },
+  { to: "/app/locacoes", label: "Ativas", icon: Timer, exact: true },
   { to: "/app/locacoes/nova", label: "Nova", icon: PlusCircle, highlight: true },
-  { to: "/app/historico", label: "Histórico", icon: History },
+  { to: "/app/veiculos", label: "Veículos", icon: Car },
   { to: "/app/perfil", label: "Perfil", icon: User },
 ];
 
