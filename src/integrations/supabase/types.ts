@@ -125,6 +125,69 @@ export type Database = {
         }
         Relationships: []
       }
+      rentals: {
+        Row: {
+          amount: number
+          created_at: string
+          ended_at: string | null
+          id: string
+          location_id: string
+          notes: string | null
+          planned_end_at: string
+          planned_minutes: number
+          started_at: string
+          status: Database["public"]["Enums"]["rental_status"]
+          updated_at: string
+          user_id: string
+          vehicle_id: string
+        }
+        Insert: {
+          amount?: number
+          created_at?: string
+          ended_at?: string | null
+          id?: string
+          location_id: string
+          notes?: string | null
+          planned_end_at: string
+          planned_minutes: number
+          started_at?: string
+          status?: Database["public"]["Enums"]["rental_status"]
+          updated_at?: string
+          user_id: string
+          vehicle_id: string
+        }
+        Update: {
+          amount?: number
+          created_at?: string
+          ended_at?: string | null
+          id?: string
+          location_id?: string
+          notes?: string | null
+          planned_end_at?: string
+          planned_minutes?: number
+          started_at?: string
+          status?: Database["public"]["Enums"]["rental_status"]
+          updated_at?: string
+          user_id?: string
+          vehicle_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "rentals_location_id_fkey"
+            columns: ["location_id"]
+            isOneToOne: false
+            referencedRelation: "locations"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "rentals_vehicle_id_fkey"
+            columns: ["vehicle_id"]
+            isOneToOne: false
+            referencedRelation: "vehicles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       subscriptions: {
         Row: {
           created_at: string
@@ -260,6 +323,7 @@ export type Database = {
     Enums: {
       account_status: "pendente" | "ativo" | "suspenso" | "recusado"
       app_role: "platform_admin" | "vehicle_owner"
+      rental_status: "ativa" | "finalizada" | "cancelada"
       subscription_status: "trial" | "ativa" | "inadimplente" | "cancelada"
       vehicle_status: "disponivel" | "em_locacao" | "manutencao" | "inativo"
     }
@@ -391,6 +455,7 @@ export const Constants = {
     Enums: {
       account_status: ["pendente", "ativo", "suspenso", "recusado"],
       app_role: ["platform_admin", "vehicle_owner"],
+      rental_status: ["ativa", "finalizada", "cancelada"],
       subscription_status: ["trial", "ativa", "inadimplente", "cancelada"],
       vehicle_status: ["disponivel", "em_locacao", "manutencao", "inativo"],
     },
