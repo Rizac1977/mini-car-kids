@@ -9,38 +9,294 @@
 // Additionally, you should also exclude this file from your linter and/or formatter to prevent it from being checked or modified.
 
 import { Route as rootRouteImport } from './routes/__root'
+import { Route as RecuperarSenhaRouteImport } from './routes/recuperar-senha'
+import { Route as LoginRouteImport } from './routes/login'
+import { Route as CadastroRouteImport } from './routes/cadastro'
+import { Route as AppRouteImport } from './routes/app'
+import { Route as AdminRouteImport } from './routes/admin'
 import { Route as IndexRouteImport } from './routes/index'
+import { Route as AppIndexRouteImport } from './routes/app.index'
+import { Route as AdminIndexRouteImport } from './routes/admin.index'
+import { Route as AppVeiculosRouteImport } from './routes/app.veiculos'
+import { Route as AppRelatoriosRouteImport } from './routes/app.relatorios'
+import { Route as AppPerfilRouteImport } from './routes/app.perfil'
+import { Route as AppLocaisRouteImport } from './routes/app.locais'
+import { Route as AppLocacoesRouteImport } from './routes/app.locacoes'
+import { Route as AppHistoricoRouteImport } from './routes/app.historico'
+import { Route as AppAssinaturaRouteImport } from './routes/app.assinatura'
+import { Route as AdminDonosRouteImport } from './routes/admin.donos'
+import { Route as AppVeiculosNovoRouteImport } from './routes/app.veiculos.novo'
+import { Route as AppLocacoesNovaRouteImport } from './routes/app.locacoes.nova'
+import { Route as AdminDonosIdRouteImport } from './routes/admin.donos.$id'
 
+const RecuperarSenhaRoute = RecuperarSenhaRouteImport.update({
+  id: '/recuperar-senha',
+  path: '/recuperar-senha',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const LoginRoute = LoginRouteImport.update({
+  id: '/login',
+  path: '/login',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const CadastroRoute = CadastroRouteImport.update({
+  id: '/cadastro',
+  path: '/cadastro',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const AppRoute = AppRouteImport.update({
+  id: '/app',
+  path: '/app',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const AdminRoute = AdminRouteImport.update({
+  id: '/admin',
+  path: '/admin',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const IndexRoute = IndexRouteImport.update({
   id: '/',
   path: '/',
   getParentRoute: () => rootRouteImport,
 } as any)
+const AppIndexRoute = AppIndexRouteImport.update({
+  id: '/',
+  path: '/',
+  getParentRoute: () => AppRoute,
+} as any)
+const AdminIndexRoute = AdminIndexRouteImport.update({
+  id: '/',
+  path: '/',
+  getParentRoute: () => AdminRoute,
+} as any)
+const AppVeiculosRoute = AppVeiculosRouteImport.update({
+  id: '/veiculos',
+  path: '/veiculos',
+  getParentRoute: () => AppRoute,
+} as any)
+const AppRelatoriosRoute = AppRelatoriosRouteImport.update({
+  id: '/relatorios',
+  path: '/relatorios',
+  getParentRoute: () => AppRoute,
+} as any)
+const AppPerfilRoute = AppPerfilRouteImport.update({
+  id: '/perfil',
+  path: '/perfil',
+  getParentRoute: () => AppRoute,
+} as any)
+const AppLocaisRoute = AppLocaisRouteImport.update({
+  id: '/locais',
+  path: '/locais',
+  getParentRoute: () => AppRoute,
+} as any)
+const AppLocacoesRoute = AppLocacoesRouteImport.update({
+  id: '/locacoes',
+  path: '/locacoes',
+  getParentRoute: () => AppRoute,
+} as any)
+const AppHistoricoRoute = AppHistoricoRouteImport.update({
+  id: '/historico',
+  path: '/historico',
+  getParentRoute: () => AppRoute,
+} as any)
+const AppAssinaturaRoute = AppAssinaturaRouteImport.update({
+  id: '/assinatura',
+  path: '/assinatura',
+  getParentRoute: () => AppRoute,
+} as any)
+const AdminDonosRoute = AdminDonosRouteImport.update({
+  id: '/donos',
+  path: '/donos',
+  getParentRoute: () => AdminRoute,
+} as any)
+const AppVeiculosNovoRoute = AppVeiculosNovoRouteImport.update({
+  id: '/novo',
+  path: '/novo',
+  getParentRoute: () => AppVeiculosRoute,
+} as any)
+const AppLocacoesNovaRoute = AppLocacoesNovaRouteImport.update({
+  id: '/nova',
+  path: '/nova',
+  getParentRoute: () => AppLocacoesRoute,
+} as any)
+const AdminDonosIdRoute = AdminDonosIdRouteImport.update({
+  id: '/$id',
+  path: '/$id',
+  getParentRoute: () => AdminDonosRoute,
+} as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
+  '/admin': typeof AdminRouteWithChildren
+  '/app': typeof AppRouteWithChildren
+  '/cadastro': typeof CadastroRoute
+  '/login': typeof LoginRoute
+  '/recuperar-senha': typeof RecuperarSenhaRoute
+  '/admin/donos': typeof AdminDonosRouteWithChildren
+  '/app/assinatura': typeof AppAssinaturaRoute
+  '/app/historico': typeof AppHistoricoRoute
+  '/app/locacoes': typeof AppLocacoesRouteWithChildren
+  '/app/locais': typeof AppLocaisRoute
+  '/app/perfil': typeof AppPerfilRoute
+  '/app/relatorios': typeof AppRelatoriosRoute
+  '/app/veiculos': typeof AppVeiculosRouteWithChildren
+  '/admin/': typeof AdminIndexRoute
+  '/app/': typeof AppIndexRoute
+  '/admin/donos/$id': typeof AdminDonosIdRoute
+  '/app/locacoes/nova': typeof AppLocacoesNovaRoute
+  '/app/veiculos/novo': typeof AppVeiculosNovoRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
+  '/cadastro': typeof CadastroRoute
+  '/login': typeof LoginRoute
+  '/recuperar-senha': typeof RecuperarSenhaRoute
+  '/admin/donos': typeof AdminDonosRouteWithChildren
+  '/app/assinatura': typeof AppAssinaturaRoute
+  '/app/historico': typeof AppHistoricoRoute
+  '/app/locacoes': typeof AppLocacoesRouteWithChildren
+  '/app/locais': typeof AppLocaisRoute
+  '/app/perfil': typeof AppPerfilRoute
+  '/app/relatorios': typeof AppRelatoriosRoute
+  '/app/veiculos': typeof AppVeiculosRouteWithChildren
+  '/admin': typeof AdminIndexRoute
+  '/app': typeof AppIndexRoute
+  '/admin/donos/$id': typeof AdminDonosIdRoute
+  '/app/locacoes/nova': typeof AppLocacoesNovaRoute
+  '/app/veiculos/novo': typeof AppVeiculosNovoRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
+  '/admin': typeof AdminRouteWithChildren
+  '/app': typeof AppRouteWithChildren
+  '/cadastro': typeof CadastroRoute
+  '/login': typeof LoginRoute
+  '/recuperar-senha': typeof RecuperarSenhaRoute
+  '/admin/donos': typeof AdminDonosRouteWithChildren
+  '/app/assinatura': typeof AppAssinaturaRoute
+  '/app/historico': typeof AppHistoricoRoute
+  '/app/locacoes': typeof AppLocacoesRouteWithChildren
+  '/app/locais': typeof AppLocaisRoute
+  '/app/perfil': typeof AppPerfilRoute
+  '/app/relatorios': typeof AppRelatoriosRoute
+  '/app/veiculos': typeof AppVeiculosRouteWithChildren
+  '/admin/': typeof AdminIndexRoute
+  '/app/': typeof AppIndexRoute
+  '/admin/donos/$id': typeof AdminDonosIdRoute
+  '/app/locacoes/nova': typeof AppLocacoesNovaRoute
+  '/app/veiculos/novo': typeof AppVeiculosNovoRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
-  fullPaths: '/'
+  fullPaths:
+    | '/'
+    | '/admin'
+    | '/app'
+    | '/cadastro'
+    | '/login'
+    | '/recuperar-senha'
+    | '/admin/donos'
+    | '/app/assinatura'
+    | '/app/historico'
+    | '/app/locacoes'
+    | '/app/locais'
+    | '/app/perfil'
+    | '/app/relatorios'
+    | '/app/veiculos'
+    | '/admin/'
+    | '/app/'
+    | '/admin/donos/$id'
+    | '/app/locacoes/nova'
+    | '/app/veiculos/novo'
   fileRoutesByTo: FileRoutesByTo
-  to: '/'
-  id: '__root__' | '/'
+  to:
+    | '/'
+    | '/cadastro'
+    | '/login'
+    | '/recuperar-senha'
+    | '/admin/donos'
+    | '/app/assinatura'
+    | '/app/historico'
+    | '/app/locacoes'
+    | '/app/locais'
+    | '/app/perfil'
+    | '/app/relatorios'
+    | '/app/veiculos'
+    | '/admin'
+    | '/app'
+    | '/admin/donos/$id'
+    | '/app/locacoes/nova'
+    | '/app/veiculos/novo'
+  id:
+    | '__root__'
+    | '/'
+    | '/admin'
+    | '/app'
+    | '/cadastro'
+    | '/login'
+    | '/recuperar-senha'
+    | '/admin/donos'
+    | '/app/assinatura'
+    | '/app/historico'
+    | '/app/locacoes'
+    | '/app/locais'
+    | '/app/perfil'
+    | '/app/relatorios'
+    | '/app/veiculos'
+    | '/admin/'
+    | '/app/'
+    | '/admin/donos/$id'
+    | '/app/locacoes/nova'
+    | '/app/veiculos/novo'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
+  AdminRoute: typeof AdminRouteWithChildren
+  AppRoute: typeof AppRouteWithChildren
+  CadastroRoute: typeof CadastroRoute
+  LoginRoute: typeof LoginRoute
+  RecuperarSenhaRoute: typeof RecuperarSenhaRoute
 }
 
 declare module '@tanstack/react-router' {
   interface FileRoutesByPath {
+    '/recuperar-senha': {
+      id: '/recuperar-senha'
+      path: '/recuperar-senha'
+      fullPath: '/recuperar-senha'
+      preLoaderRoute: typeof RecuperarSenhaRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/login': {
+      id: '/login'
+      path: '/login'
+      fullPath: '/login'
+      preLoaderRoute: typeof LoginRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/cadastro': {
+      id: '/cadastro'
+      path: '/cadastro'
+      fullPath: '/cadastro'
+      preLoaderRoute: typeof CadastroRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/app': {
+      id: '/app'
+      path: '/app'
+      fullPath: '/app'
+      preLoaderRoute: typeof AppRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/admin': {
+      id: '/admin'
+      path: '/admin'
+      fullPath: '/admin'
+      preLoaderRoute: typeof AdminRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/': {
       id: '/'
       path: '/'
@@ -48,22 +304,180 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof IndexRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/app/': {
+      id: '/app/'
+      path: '/'
+      fullPath: '/app/'
+      preLoaderRoute: typeof AppIndexRouteImport
+      parentRoute: typeof AppRoute
+    }
+    '/admin/': {
+      id: '/admin/'
+      path: '/'
+      fullPath: '/admin/'
+      preLoaderRoute: typeof AdminIndexRouteImport
+      parentRoute: typeof AdminRoute
+    }
+    '/app/veiculos': {
+      id: '/app/veiculos'
+      path: '/veiculos'
+      fullPath: '/app/veiculos'
+      preLoaderRoute: typeof AppVeiculosRouteImport
+      parentRoute: typeof AppRoute
+    }
+    '/app/relatorios': {
+      id: '/app/relatorios'
+      path: '/relatorios'
+      fullPath: '/app/relatorios'
+      preLoaderRoute: typeof AppRelatoriosRouteImport
+      parentRoute: typeof AppRoute
+    }
+    '/app/perfil': {
+      id: '/app/perfil'
+      path: '/perfil'
+      fullPath: '/app/perfil'
+      preLoaderRoute: typeof AppPerfilRouteImport
+      parentRoute: typeof AppRoute
+    }
+    '/app/locais': {
+      id: '/app/locais'
+      path: '/locais'
+      fullPath: '/app/locais'
+      preLoaderRoute: typeof AppLocaisRouteImport
+      parentRoute: typeof AppRoute
+    }
+    '/app/locacoes': {
+      id: '/app/locacoes'
+      path: '/locacoes'
+      fullPath: '/app/locacoes'
+      preLoaderRoute: typeof AppLocacoesRouteImport
+      parentRoute: typeof AppRoute
+    }
+    '/app/historico': {
+      id: '/app/historico'
+      path: '/historico'
+      fullPath: '/app/historico'
+      preLoaderRoute: typeof AppHistoricoRouteImport
+      parentRoute: typeof AppRoute
+    }
+    '/app/assinatura': {
+      id: '/app/assinatura'
+      path: '/assinatura'
+      fullPath: '/app/assinatura'
+      preLoaderRoute: typeof AppAssinaturaRouteImport
+      parentRoute: typeof AppRoute
+    }
+    '/admin/donos': {
+      id: '/admin/donos'
+      path: '/donos'
+      fullPath: '/admin/donos'
+      preLoaderRoute: typeof AdminDonosRouteImport
+      parentRoute: typeof AdminRoute
+    }
+    '/app/veiculos/novo': {
+      id: '/app/veiculos/novo'
+      path: '/novo'
+      fullPath: '/app/veiculos/novo'
+      preLoaderRoute: typeof AppVeiculosNovoRouteImport
+      parentRoute: typeof AppVeiculosRoute
+    }
+    '/app/locacoes/nova': {
+      id: '/app/locacoes/nova'
+      path: '/nova'
+      fullPath: '/app/locacoes/nova'
+      preLoaderRoute: typeof AppLocacoesNovaRouteImport
+      parentRoute: typeof AppLocacoesRoute
+    }
+    '/admin/donos/$id': {
+      id: '/admin/donos/$id'
+      path: '/$id'
+      fullPath: '/admin/donos/$id'
+      preLoaderRoute: typeof AdminDonosIdRouteImport
+      parentRoute: typeof AdminDonosRoute
+    }
   }
 }
 
+interface AdminDonosRouteChildren {
+  AdminDonosIdRoute: typeof AdminDonosIdRoute
+}
+
+const AdminDonosRouteChildren: AdminDonosRouteChildren = {
+  AdminDonosIdRoute: AdminDonosIdRoute,
+}
+
+const AdminDonosRouteWithChildren = AdminDonosRoute._addFileChildren(
+  AdminDonosRouteChildren,
+)
+
+interface AdminRouteChildren {
+  AdminDonosRoute: typeof AdminDonosRouteWithChildren
+  AdminIndexRoute: typeof AdminIndexRoute
+}
+
+const AdminRouteChildren: AdminRouteChildren = {
+  AdminDonosRoute: AdminDonosRouteWithChildren,
+  AdminIndexRoute: AdminIndexRoute,
+}
+
+const AdminRouteWithChildren = AdminRoute._addFileChildren(AdminRouteChildren)
+
+interface AppLocacoesRouteChildren {
+  AppLocacoesNovaRoute: typeof AppLocacoesNovaRoute
+}
+
+const AppLocacoesRouteChildren: AppLocacoesRouteChildren = {
+  AppLocacoesNovaRoute: AppLocacoesNovaRoute,
+}
+
+const AppLocacoesRouteWithChildren = AppLocacoesRoute._addFileChildren(
+  AppLocacoesRouteChildren,
+)
+
+interface AppVeiculosRouteChildren {
+  AppVeiculosNovoRoute: typeof AppVeiculosNovoRoute
+}
+
+const AppVeiculosRouteChildren: AppVeiculosRouteChildren = {
+  AppVeiculosNovoRoute: AppVeiculosNovoRoute,
+}
+
+const AppVeiculosRouteWithChildren = AppVeiculosRoute._addFileChildren(
+  AppVeiculosRouteChildren,
+)
+
+interface AppRouteChildren {
+  AppAssinaturaRoute: typeof AppAssinaturaRoute
+  AppHistoricoRoute: typeof AppHistoricoRoute
+  AppLocacoesRoute: typeof AppLocacoesRouteWithChildren
+  AppLocaisRoute: typeof AppLocaisRoute
+  AppPerfilRoute: typeof AppPerfilRoute
+  AppRelatoriosRoute: typeof AppRelatoriosRoute
+  AppVeiculosRoute: typeof AppVeiculosRouteWithChildren
+  AppIndexRoute: typeof AppIndexRoute
+}
+
+const AppRouteChildren: AppRouteChildren = {
+  AppAssinaturaRoute: AppAssinaturaRoute,
+  AppHistoricoRoute: AppHistoricoRoute,
+  AppLocacoesRoute: AppLocacoesRouteWithChildren,
+  AppLocaisRoute: AppLocaisRoute,
+  AppPerfilRoute: AppPerfilRoute,
+  AppRelatoriosRoute: AppRelatoriosRoute,
+  AppVeiculosRoute: AppVeiculosRouteWithChildren,
+  AppIndexRoute: AppIndexRoute,
+}
+
+const AppRouteWithChildren = AppRoute._addFileChildren(AppRouteChildren)
+
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
+  AdminRoute: AdminRouteWithChildren,
+  AppRoute: AppRouteWithChildren,
+  CadastroRoute: CadastroRoute,
+  LoginRoute: LoginRoute,
+  RecuperarSenhaRoute: RecuperarSenhaRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
   ._addFileTypes<FileRouteTypes>()
-
-import type { getRouter } from './router.tsx'
-import type { startInstance } from './start.ts'
-declare module '@tanstack/react-start' {
-  interface Register {
-    ssr: true
-    router: Awaited<ReturnType<typeof getRouter>>
-    config: Awaited<ReturnType<typeof startInstance.getOptions>>
-  }
-}
