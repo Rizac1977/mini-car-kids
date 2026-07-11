@@ -1,7 +1,9 @@
 import { createFileRoute, Link, useRouterState } from "@tanstack/react-router";
-import { type ReactNode } from "react";
+import { type ReactNode, useMemo } from "react";
 import { Card } from "@/components/ui/card";
-import { admins, currency } from "@/lib/mock-data";
+import { currency } from "@/lib/mock-data";
+import { supabase } from "@/integrations/supabase/client";
+import { useQuery } from "@tanstack/react-query";
 import {
   LayoutDashboard,
   Users,
@@ -10,11 +12,11 @@ import {
   Clock,
   AlertTriangle,
   Car,
-  
   Timer,
   DollarSign,
   UserPlus,
   ArrowUpRight,
+  Loader2,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 
