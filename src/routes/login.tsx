@@ -1,12 +1,16 @@
 import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
-import { useState } from "react";
-import { Eye, EyeOff } from "lucide-react";
+import { useEffect, useState } from "react";
+import { Eye, EyeOff, Loader2 } from "lucide-react";
+import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { BrandLogo } from "@/components/brand-logo";
+import { supabase } from "@/integrations/supabase/client";
+import { fetchProfileAndRole, routeForUser } from "@/hooks/use-auth";
 
 export const Route = createFileRoute("/login")({
+  ssr: false,
   head: () => ({
     meta: [
       { title: "Entrar — MiniCar Gestão" },
@@ -18,7 +22,35 @@ export const Route = createFileRoute("/login")({
 
 function LoginPage() {
   const [showPass, setShowPass] = useState(false);
+  const [email, setEmail] = useState("");
+  const [password, setPassword] = useState("");
+  const [loading, setLoading] = useState(false);
   const navigate = useNavigate();
+
+  // Se já está logado, redirecionar
+  useEffect(() => {
+    supabase.auth.getUser().then(async ({ data }) => {
+      if (data.user) {
+        const { profile, role } = await fetchProfileAndRole(data.user.id);
+        navigate({ to: routeForUser(role, profile?.account_status ?? null) });
+      }
+    });
+  }, [navigate]);
+
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setLoading(true);
+    const { data, error } = await supabase.auth.signInWithPassword({ email, password });
+    if (error) {
+      toast.error(error.message === "Invalid login credentials" ? "E-mail ou senha inválidos" : error.message);
+      setLoading(false);
+      return;
+    }
+    if (data.user) {
+      const { profile, role } = await fetchProfileAndRole(data.user.id);
+      navigate({ to: routeForUser(role, profile?.account_status ?? null) });
+    }
+  };
 
   return (
     <div className="min-h-screen bg-background flex flex-col justify-center px-6 py-10">
@@ -31,16 +63,19 @@ function LoginPage() {
           Entre para acompanhar suas locações
         </p>
 
-        <form
-          className="space-y-4"
-          onSubmit={(e) => {
-            e.preventDefault();
-            navigate({ to: "/app" });
-          }}
-        >
+        <form className="space-y-4" onSubmit={handleSubmit}>
           <div className="space-y-1.5">
             <Label htmlFor="email">E-mail</Label>
-            <Input id="email" type="email" placeholder="voce@email.com" className="h-12" />
+            <Input
+              id="email"
+              type="email"
+              autoComplete="email"
+              placeholder="voce@email.com"
+              className="h-12"
+              value={email}
+              onChange={(e) => setEmail(e.target.value)}
+              required
+            />
           </div>
           <div className="space-y-1.5">
             <Label htmlFor="senha">Senha</Label>
@@ -48,8 +83,12 @@ function LoginPage() {
               <Input
                 id="senha"
                 type={showPass ? "text" : "password"}
+                autoComplete="current-password"
                 placeholder="••••••••"
                 className="h-12 pr-12"
+                value={password}
+                onChange={(e) => setPassword(e.target.value)}
+                required
               />
               <button
                 type="button"
@@ -61,8 +100,8 @@ function LoginPage() {
               </button>
             </div>
           </div>
-          <Button type="submit" className="w-full h-12 text-base font-semibold">
-            Entrar
+          <Button type="submit" className="w-full h-12 text-base font-semibold" disabled={loading}>
+            {loading ? <Loader2 className="h-4 w-4 animate-spin" /> : "Entrar"}
           </Button>
         </form>
 
@@ -76,15 +115,6 @@ function LoginPage() {
               Criar minha conta
             </Link>
           </div>
-        </div>
-
-        <div className="mt-10 pt-6 border-t text-center">
-          <Link
-            to="/admin"
-            className="text-xs text-muted-foreground hover:text-foreground"
-          >
-            Acesso administrativo
-          </Link>
         </div>
       </div>
     </div>
