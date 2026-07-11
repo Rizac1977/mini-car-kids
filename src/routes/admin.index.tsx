@@ -1,7 +1,9 @@
 import { createFileRoute, Link, useRouterState } from "@tanstack/react-router";
-import { type ReactNode } from "react";
+import { type ReactNode, useMemo } from "react";
 import { Card } from "@/components/ui/card";
-import { admins, currency } from "@/lib/mock-data";
+import { currency } from "@/lib/mock-data";
+import { supabase } from "@/integrations/supabase/client";
+import { useQuery } from "@tanstack/react-query";
 import {
   LayoutDashboard,
   Users,
@@ -10,11 +12,11 @@ import {
   Clock,
   AlertTriangle,
   Car,
-  
   Timer,
   DollarSign,
   UserPlus,
   ArrowUpRight,
+  Loader2,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 
@@ -159,32 +161,82 @@ function Stat({
 }
 
 function AdminDashboard() {
+  const startOfMonth = useMemo(() => {
+    const d = new Date();
+    d.setDate(1);
+    d.setHours(0, 0, 0, 0);
+    return d.toISOString();
+  }, []);
+  const nowIso = useMemo(() => new Date().toISOString(), []);
+
+  const { data, isLoading } = useQuery({
+    queryKey: ["admin-dashboard", startOfMonth],
+    queryFn: async () => {
+      const [profilesRes, vehiclesRes, rentalsRes, subsRes, newMonthRes] = await Promise.all([
+        supabase.from("profiles").select("account_status"),
+        supabase.from("vehicles").select("id", { count: "exact", head: true }),
+        supabase.from("rentals").select("amount,status"),
+        supabase.from("subscriptions").select("status,current_period_end"),
+        supabase
+          .from("profiles")
+          .select("id", { count: "exact", head: true })
+          .gte("created_at", startOfMonth),
+      ]);
+
+      const profiles = (profilesRes.data ?? []) as { account_status: string }[];
+      const rentals = (rentalsRes.data ?? []) as { amount: number; status: string }[];
+      const subs = (subsRes.data ?? []) as { status: string; current_period_end: string | null }[];
+
+      return {
+        totalOwners: profiles.length,
+        activeOwners: profiles.filter((p) => p.account_status === "ativo").length,
+        pending: profiles.filter((p) => p.account_status === "pendente").length,
+        expired: subs.filter(
+          (s) => s.status === "vencida" || (s.current_period_end && s.current_period_end < nowIso && s.status !== "ativa"),
+        ).length,
+        totalVehicles: vehiclesRes.count ?? 0,
+        totalRentals: rentals.length,
+        volume: rentals
+          .filter((r) => r.status === "finalizada")
+          .reduce((s, r) => s + Number(r.amount), 0),
+        newThisMonth: newMonthRes.count ?? 0,
+      };
+    },
+  });
+
   return (
     <AdminShell title="Dashboard">
       <div className="space-y-6">
-        <div className="grid grid-cols-2 lg:grid-cols-4 gap-3">
-          <Stat icon={Users} label="Donos cadastrados" value={String(admins.totalOwners)} tone="primary" />
-          <Stat icon={UserCheck} label="Donos ativos" value={String(admins.activeOwners)} tone="primary" />
-          <Stat icon={Clock} label="Cadastros pendentes" value={String(admins.pending)} tone="warning" />
-          <Stat icon={AlertTriangle} label="Assinaturas vencidas" value={String(admins.expired)} tone="destructive" />
-          <Stat icon={Car} label="Veículos" value={String(admins.totalVehicles)} />
-
-          <Stat icon={Timer} label="Locações registradas" value={admins.totalRentals.toLocaleString("pt-BR")} />
-          <Stat icon={DollarSign} label="Volume financeiro" value={currency(admins.volume)} tone="accent" />
-        </div>
-
-        <Card className="p-4">
-          <div className="flex items-center gap-3">
-            <div className="h-12 w-12 rounded-xl bg-accent/20 grid place-items-center">
-              <UserPlus className="h-6 w-6 text-accent-foreground" />
-            </div>
-            <div className="flex-1">
-              <div className="text-xs text-muted-foreground">Novos clientes este mês</div>
-              <div className="text-2xl font-bold">{admins.newThisMonth}</div>
-            </div>
-            <ArrowUpRight className="h-5 w-5 text-success" />
+        {isLoading || !data ? (
+          <div className="grid place-items-center py-12">
+            <Loader2 className="h-6 w-6 animate-spin text-muted-foreground" />
           </div>
-        </Card>
+        ) : (
+          <>
+            <div className="grid grid-cols-2 lg:grid-cols-4 gap-3">
+              <Stat icon={Users} label="Donos cadastrados" value={String(data.totalOwners)} tone="primary" />
+              <Stat icon={UserCheck} label="Donos ativos" value={String(data.activeOwners)} tone="primary" />
+              <Stat icon={Clock} label="Cadastros pendentes" value={String(data.pending)} tone="warning" />
+              <Stat icon={AlertTriangle} label="Assinaturas vencidas" value={String(data.expired)} tone="destructive" />
+              <Stat icon={Car} label="Veículos" value={String(data.totalVehicles)} />
+              <Stat icon={Timer} label="Locações registradas" value={data.totalRentals.toLocaleString("pt-BR")} />
+              <Stat icon={DollarSign} label="Volume financeiro" value={currency(data.volume)} tone="accent" />
+            </div>
+
+            <Card className="p-4">
+              <div className="flex items-center gap-3">
+                <div className="h-12 w-12 rounded-xl bg-accent/20 grid place-items-center">
+                  <UserPlus className="h-6 w-6 text-accent-foreground" />
+                </div>
+                <div className="flex-1">
+                  <div className="text-xs text-muted-foreground">Novos clientes este mês</div>
+                  <div className="text-2xl font-bold">{data.newThisMonth}</div>
+                </div>
+                <ArrowUpRight className="h-5 w-5 text-success" />
+              </div>
+            </Card>
+          </>
+        )}
 
         <Link to="/admin/donos">
           <Card className="p-4 flex items-center justify-between hover:bg-muted/40 transition-colors">

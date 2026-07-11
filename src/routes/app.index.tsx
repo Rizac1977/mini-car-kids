@@ -190,11 +190,11 @@ function DashboardPage() {
     queryFn: async () => {
       const { data, error } = await supabase
         .from("subscriptions")
-        .select("status,expires_at,plan")
+        .select("status,current_period_end,plan")
         .eq("user_id", user!.id)
         .maybeSingle();
       if (error) throw error;
-      return data as { status: string; expires_at: string | null; plan: string } | null;
+      return data as { status: string; current_period_end: string | null; plan: string } | null;
     },
   });
 
@@ -215,8 +215,8 @@ function DashboardPage() {
   const disponiveis = vehicles.filter((v) => v.status === "disponivel").length;
   const emUso = vehicles.filter((v) => v.status === "em_locacao").length;
 
-  const daysToExpire = subscription?.expires_at
-    ? Math.ceil((new Date(subscription.expires_at).getTime() - Date.now()) / 86400000)
+  const daysToExpire = subscription?.current_period_end
+    ? Math.ceil((new Date(subscription.current_period_end).getTime() - Date.now()) / 86400000)
     : null;
 
   const firstName = (profile?.full_name ?? "").split(" ")[0] || "";
