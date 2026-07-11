@@ -7,6 +7,7 @@ import { useAuth } from "@/hooks/use-auth";
 import { supabase } from "@/integrations/supabase/client";
 import { useQuery } from "@tanstack/react-query";
 import { useState } from "react";
+import { useVehiclePhotoUrl } from "@/hooks/use-vehicle-photo";
 
 type HistoryRow = {
   id: string;
@@ -127,11 +128,8 @@ function HistoricoPage() {
               return (
                 <Card key={h.id} className="p-4">
                   <div className="flex gap-3">
-                    {h.vehicles?.photo_url ? (
-                      <img src={h.vehicles.photo_url} alt={h.vehicles.name} className="h-12 w-12 rounded-xl object-cover shrink-0" />
-                    ) : (
-                      <div className="h-12 w-12 rounded-xl bg-muted grid place-items-center text-2xl shrink-0">🚗</div>
-                    )}
+                    <HistoryPhoto path={h.vehicles?.photo_url ?? null} name={h.vehicles?.name ?? "Veículo"} />
+
                     <div className="flex-1 min-w-0">
                       <div className="flex items-start justify-between gap-2">
                         <div className="min-w-0">
@@ -158,4 +156,10 @@ function HistoricoPage() {
       </div>
     </AppShell>
   );
+}
+
+function HistoryPhoto({ path, name }: { path: string | null; name: string }) {
+  const src = useVehiclePhotoUrl(path);
+  if (src) return <img src={src} alt={name} className="h-12 w-12 rounded-xl object-cover shrink-0" />;
+  return <div className="h-12 w-12 rounded-xl bg-muted grid place-items-center text-2xl shrink-0">🚗</div>;
 }

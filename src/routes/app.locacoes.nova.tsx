@@ -9,6 +9,7 @@ import { useAuth } from "@/hooks/use-auth";
 import { supabase } from "@/integrations/supabase/client";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
+import { useVehiclePhotoUrl } from "@/hooks/use-vehicle-photo";
 
 const packages = [
   { id: "p1", minutes: 5, price: 8 },
@@ -94,20 +95,14 @@ function NovaLocacaoPage() {
           ) : (
             <div className="grid grid-cols-2 gap-3">
               {availableVehicles.map((v) => (
-                <button
+                <VehicleTile
                   key={v.id}
-                  onClick={() => setVehicleId(v.id)}
-                  className={`p-3 rounded-xl border-2 flex flex-col items-center text-center transition-all ${
-                    vehicleId === v.id ? "border-primary bg-primary-soft" : "border-border bg-card"
-                  }`}
-                >
-                  {v.photo_url ? (
-                    <img src={v.photo_url} alt={v.name} className="h-16 w-16 rounded-lg object-cover mb-1" />
-                  ) : (
-                    <div className="h-16 w-16 rounded-lg bg-muted grid place-items-center text-3xl mb-1">🚗</div>
-                  )}
-                  <div className="text-sm font-semibold truncate w-full">{v.name}</div>
-                </button>
+                  id={v.id}
+                  name={v.name}
+                  photoPath={v.photo_url}
+                  selected={vehicleId === v.id}
+                  onSelect={() => setVehicleId(v.id)}
+                />
               ))}
             </div>
           )}
@@ -175,5 +170,27 @@ function Row({ k, v, highlight }: { k: string; v: string; highlight?: boolean })
       <span className="text-muted-foreground">{k}</span>
       <span className={highlight ? "font-bold text-primary" : "font-medium"}>{v}</span>
     </div>
+  );
+}
+
+function VehicleTile({ id, name, photoPath, selected, onSelect }: {
+  id: string; name: string; photoPath: string | null; selected: boolean; onSelect: () => void;
+}) {
+  const src = useVehiclePhotoUrl(photoPath);
+  return (
+    <button
+      key={id}
+      onClick={onSelect}
+      className={`p-3 rounded-xl border-2 flex flex-col items-center text-center transition-all ${
+        selected ? "border-primary bg-primary-soft" : "border-border bg-card"
+      }`}
+    >
+      {src ? (
+        <img src={src} alt={name} className="h-16 w-16 rounded-lg object-cover mb-1" />
+      ) : (
+        <div className="h-16 w-16 rounded-lg bg-muted grid place-items-center text-3xl mb-1">🚗</div>
+      )}
+      <div className="text-sm font-semibold truncate w-full">{name}</div>
+    </button>
   );
 }

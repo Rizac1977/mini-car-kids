@@ -10,6 +10,7 @@ import { useAuth } from "@/hooks/use-auth";
 import { supabase } from "@/integrations/supabase/client";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
+import { useVehiclePhotoUrl } from "@/hooks/use-vehicle-photo";
 
 type ActiveRental = {
   id: string;
@@ -166,11 +167,8 @@ function LocacoesPage() {
                 }`}
               >
                 <div className="flex gap-3">
-                  {r.vehicles?.photo_url ? (
-                    <img src={r.vehicles.photo_url} alt={r.vehicles.name} className="h-16 w-16 rounded-xl object-cover shrink-0" />
-                  ) : (
-                    <div className="h-16 w-16 rounded-xl bg-muted grid place-items-center text-3xl shrink-0">🚗</div>
-                  )}
+                  <VehiclePhoto path={r.vehicles?.photo_url ?? null} name={r.vehicles?.name ?? "Veículo"} size="h-16 w-16 rounded-xl" />
+
                   <div className="flex-1 min-w-0">
                     <div className="font-bold truncate">{r.vehicles?.name ?? "Veículo"}</div>
                     <div className="mt-0.5 text-xs text-muted-foreground flex items-center gap-1">
@@ -232,4 +230,10 @@ function LocacoesPage() {
       )}
     </AppShell>
   );
+}
+
+function VehiclePhoto({ path, name, size }: { path: string | null; name: string; size: string }) {
+  const src = useVehiclePhotoUrl(path);
+  if (src) return <img src={src} alt={name} className={`${size} object-cover shrink-0`} />;
+  return <div className={`${size} bg-muted grid place-items-center text-3xl shrink-0`}>🚗</div>;
 }
