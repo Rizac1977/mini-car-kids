@@ -330,14 +330,29 @@ function VeiculosPage() {
 }
 
 function VehicleCard({
-  v, onEdit, onDelete,
+  v, rental, onEdit, onDelete,
 }: {
   v: Vehicle;
+  rental: ActiveRental | null;
   onEdit: () => void;
   onDelete: () => void;
 }) {
   const meta = statusMeta[v.status] ?? statusMeta.inativo;
   const photo = usePhotoUrl(v.photo_url);
+
+  let countdown: { label: string; urgent: boolean; paused: boolean } | null = null;
+  if (rental) {
+    const end = new Date(rental.planned_end_at).getTime();
+    const paused = !!rental.paused_at;
+    const nowRef = paused ? new Date(rental.paused_at!).getTime() : Date.now();
+    const remaining = Math.max(0, end - nowRef);
+    countdown = {
+      label: remaining > 0 ? fmtCountdown(remaining) : "Encerrado",
+      urgent: !paused && remaining <= 60_000,
+      paused,
+    };
+  }
+
   return (
     <Card className="p-4">
       <div className="flex gap-3">
@@ -358,6 +373,21 @@ function VehicleCard({
             </div>
             <Badge variant="outline" className={meta.className}>{meta.label}</Badge>
           </div>
+          {countdown && (
+            <div
+              className={`mt-2 inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg text-xs font-mono font-semibold border ${
+                countdown.paused
+                  ? "bg-muted text-muted-foreground border-border"
+                  : countdown.urgent
+                    ? "bg-destructive/10 text-destructive border-destructive/30"
+                    : "bg-accent/20 text-accent-foreground border-accent/40"
+              }`}
+            >
+              <Timer className="h-3.5 w-3.5" />
+              {countdown.paused ? "Pausada • " : "Restam "}
+              {countdown.label}
+            </div>
+          )}
           <div className="flex gap-4 mt-3">
             <button
               className="inline-flex items-center gap-1 text-xs text-primary font-medium"
