@@ -86,9 +86,52 @@ export type Database = {
         }
         Relationships: []
       }
+      rental_renewals: {
+        Row: {
+          added_amount: number
+          added_minutes: number
+          created_at: string
+          id: string
+          new_end_at: string
+          previous_end_at: string
+          rental_id: string
+          user_id: string
+        }
+        Insert: {
+          added_amount?: number
+          added_minutes: number
+          created_at?: string
+          id?: string
+          new_end_at: string
+          previous_end_at: string
+          rental_id: string
+          user_id: string
+        }
+        Update: {
+          added_amount?: number
+          added_minutes?: number
+          created_at?: string
+          id?: string
+          new_end_at?: string
+          previous_end_at?: string
+          rental_id?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "rental_renewals_rental_id_fkey"
+            columns: ["rental_id"]
+            isOneToOne: false
+            referencedRelation: "rentals"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       rentals: {
         Row: {
           amount: number
+          cancel_reason: string | null
+          canceled_at: string | null
           created_at: string
           ended_at: string | null
           id: string
@@ -104,6 +147,8 @@ export type Database = {
         }
         Insert: {
           amount?: number
+          cancel_reason?: string | null
+          canceled_at?: string | null
           created_at?: string
           ended_at?: string | null
           id?: string
@@ -119,6 +164,8 @@ export type Database = {
         }
         Update: {
           amount?: number
+          cancel_reason?: string | null
+          canceled_at?: string | null
           created_at?: string
           ended_at?: string | null
           id?: string
