@@ -161,13 +161,18 @@ function Stat({
 }
 
 function AdminDashboard() {
-  const startOfMonth = useMemo(() => {
+  const { startOfMonth, nowIso, in7Iso } = useMemo(() => {
     const d = new Date();
     d.setDate(1);
     d.setHours(0, 0, 0, 0);
-    return d.toISOString();
+    const in7 = new Date();
+    in7.setDate(in7.getDate() + 7);
+    return {
+      startOfMonth: d.toISOString(),
+      nowIso: new Date().toISOString(),
+      in7Iso: in7.toISOString(),
+    };
   }, []);
-  const nowIso = useMemo(() => new Date().toISOString(), []);
 
   const { data, isLoading } = useQuery({
     queryKey: ["admin-dashboard", startOfMonth],
@@ -187,13 +192,22 @@ function AdminDashboard() {
       const rentals = (rentalsRes.data ?? []) as { amount: number; status: string }[];
       const subs = (subsRes.data ?? []) as { status: string; current_period_end: string | null }[];
 
+      const expired = subs.filter(
+        (s) => s.current_period_end && s.current_period_end < nowIso,
+      ).length;
+      const dueSoon = subs.filter(
+        (s) =>
+          s.current_period_end &&
+          s.current_period_end >= nowIso &&
+          s.current_period_end <= in7Iso,
+      ).length;
+
       return {
         totalOwners: profiles.length,
         activeOwners: profiles.filter((p) => p.account_status === "ativo").length,
         pending: profiles.filter((p) => p.account_status === "pendente").length,
-        expired: subs.filter(
-          (s) => s.status === "vencida" || (s.current_period_end && s.current_period_end < nowIso && s.status !== "ativa"),
-        ).length,
+        expired,
+        dueSoon,
         totalVehicles: vehiclesRes.count ?? 0,
         totalRentals: rentals.length,
         volume: rentals
@@ -217,6 +231,7 @@ function AdminDashboard() {
               <Stat icon={Users} label="Donos cadastrados" value={String(data.totalOwners)} tone="primary" />
               <Stat icon={UserCheck} label="Donos ativos" value={String(data.activeOwners)} tone="primary" />
               <Stat icon={Clock} label="Cadastros pendentes" value={String(data.pending)} tone="warning" />
+              <Stat icon={AlertTriangle} label="Vencendo em 7 dias" value={String(data.dueSoon)} tone="warning" />
               <Stat icon={AlertTriangle} label="Assinaturas vencidas" value={String(data.expired)} tone="destructive" />
               <Stat icon={Car} label="Veículos" value={String(data.totalVehicles)} />
               <Stat icon={Timer} label="Locações registradas" value={data.totalRentals.toLocaleString("pt-BR")} />
