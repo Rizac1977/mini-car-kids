@@ -1,5 +1,5 @@
 import { createFileRoute } from "@tanstack/react-router";
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
 import {
@@ -8,6 +8,7 @@ import {
 import { AppShell } from "@/components/app-shell";
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
+
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Badge } from "@/components/ui/badge";
@@ -296,7 +297,7 @@ function VehicleCard({
   onEdit: () => void;
   onDelete: () => void;
 }) {
-  const meta = statusMeta[v.status];
+  const meta = statusMeta[v.status] ?? statusMeta.inativo;
   const photo = usePhotoUrl(v.photo_url);
   return (
     <Card className="p-4">
@@ -338,13 +339,24 @@ function VehicleCard({
   );
 }
 
+
 function VehicleForm({
   form, setForm,
 }: {
   form: FormState;
   setForm: (f: FormState) => void;
 }) {
-  const localPreview = form.photo_file ? URL.createObjectURL(form.photo_file) : null;
+  const [localPreview, setLocalPreview] = useState<string | null>(null);
+  useEffect(() => {
+    if (!form.photo_file) {
+      setLocalPreview(null);
+      return;
+    }
+    const url = URL.createObjectURL(form.photo_file);
+    setLocalPreview(url);
+    return () => URL.revokeObjectURL(url);
+  }, [form.photo_file]);
+
   const remotePreview = usePhotoUrl(localPreview ? null : form.photo_url);
   const preview = localPreview ?? remotePreview;
 
@@ -395,6 +407,7 @@ function VehicleForm({
     </div>
   );
 }
+
 
 // Assina URL do bucket privado para exibir a foto.
 function usePhotoUrl(path: string | null) {
