@@ -112,6 +112,31 @@ function VeiculosPage() {
     },
   });
 
+  const { data: activeRentals } = useQuery({
+    queryKey: ["vehicles-active-rentals"],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from("rentals")
+        .select("vehicle_id,planned_end_at,paused_at")
+        .eq("status", "ativa");
+      if (error) throw error;
+      return (data ?? []) as ActiveRental[];
+    },
+    refetchInterval: 15000,
+  });
+
+  const rentalByVehicle = useMemo(() => {
+    const map = new Map<string, ActiveRental>();
+    (activeRentals ?? []).forEach((r) => map.set(r.vehicle_id, r));
+    return map;
+  }, [activeRentals]);
+
+  const [, setTick] = useState(0);
+  useEffect(() => {
+    const t = setInterval(() => setTick((n) => n + 1), 1000);
+    return () => clearInterval(t);
+  }, []);
+
   const filtered = useMemo(() => {
     const q = search.trim().toLowerCase();
     return (vehicles ?? []).filter((v) => {
