@@ -1,0 +1,1 @@
+ALTER TABLE public.rentals ADD COLUMN IF NOT EXISTS paused_at timestamptz;
