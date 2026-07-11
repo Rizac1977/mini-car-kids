@@ -137,7 +137,15 @@ function AssinaturaPage() {
           </Card>
         )}
 
-        <Button className="w-full h-12 font-semibold">Falar com suporte</Button>
+        <Button asChild className="w-full h-12 font-semibold">
+          <a
+            href="https://wa.me/5584998472400?text=Ol%C3%A1%2C%20preciso%20de%20suporte%20no%20MiniCar%20Gest%C3%A3o"
+            target="_blank"
+            rel="noopener noreferrer"
+          >
+            Falar com suporte
+          </a>
+        </Button>
       </div>
     </AppShell>
   );
