@@ -27,6 +27,7 @@ import { Route as AppLocacoesRouteImport } from './routes/app.locacoes'
 import { Route as AppHistoricoRouteImport } from './routes/app.historico'
 import { Route as AppAssinaturaRouteImport } from './routes/app.assinatura'
 import { Route as AdminDonosRouteImport } from './routes/admin.donos'
+import { Route as AppLocacoesIndexRouteImport } from './routes/app.locacoes.index'
 import { Route as AppLocacoesNovaRouteImport } from './routes/app.locacoes.nova'
 import { Route as AdminDonosIdRouteImport } from './routes/admin.donos.$id'
 
@@ -120,6 +121,11 @@ const AdminDonosRoute = AdminDonosRouteImport.update({
   path: '/donos',
   getParentRoute: () => AdminRoute,
 } as any)
+const AppLocacoesIndexRoute = AppLocacoesIndexRouteImport.update({
+  id: '/',
+  path: '/',
+  getParentRoute: () => AppLocacoesRoute,
+} as any)
 const AppLocacoesNovaRoute = AppLocacoesNovaRouteImport.update({
   id: '/nova',
   path: '/nova',
@@ -152,6 +158,7 @@ export interface FileRoutesByFullPath {
   '/app/': typeof AppIndexRoute
   '/admin/donos/$id': typeof AdminDonosIdRoute
   '/app/locacoes/nova': typeof AppLocacoesNovaRoute
+  '/app/locacoes/': typeof AppLocacoesIndexRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
@@ -163,7 +170,6 @@ export interface FileRoutesByTo {
   '/admin/donos': typeof AdminDonosRouteWithChildren
   '/app/assinatura': typeof AppAssinaturaRoute
   '/app/historico': typeof AppHistoricoRoute
-  '/app/locacoes': typeof AppLocacoesRouteWithChildren
   '/app/locais': typeof AppLocaisRoute
   '/app/perfil': typeof AppPerfilRoute
   '/app/relatorios': typeof AppRelatoriosRoute
@@ -172,6 +178,7 @@ export interface FileRoutesByTo {
   '/app': typeof AppIndexRoute
   '/admin/donos/$id': typeof AdminDonosIdRoute
   '/app/locacoes/nova': typeof AppLocacoesNovaRoute
+  '/app/locacoes': typeof AppLocacoesIndexRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
@@ -195,6 +202,7 @@ export interface FileRoutesById {
   '/app/': typeof AppIndexRoute
   '/admin/donos/$id': typeof AdminDonosIdRoute
   '/app/locacoes/nova': typeof AppLocacoesNovaRoute
+  '/app/locacoes/': typeof AppLocacoesIndexRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
@@ -219,6 +227,7 @@ export interface FileRouteTypes {
     | '/app/'
     | '/admin/donos/$id'
     | '/app/locacoes/nova'
+    | '/app/locacoes/'
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/'
@@ -230,7 +239,6 @@ export interface FileRouteTypes {
     | '/admin/donos'
     | '/app/assinatura'
     | '/app/historico'
-    | '/app/locacoes'
     | '/app/locais'
     | '/app/perfil'
     | '/app/relatorios'
@@ -239,6 +247,7 @@ export interface FileRouteTypes {
     | '/app'
     | '/admin/donos/$id'
     | '/app/locacoes/nova'
+    | '/app/locacoes'
   id:
     | '__root__'
     | '/'
@@ -261,6 +270,7 @@ export interface FileRouteTypes {
     | '/app/'
     | '/admin/donos/$id'
     | '/app/locacoes/nova'
+    | '/app/locacoes/'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
@@ -402,6 +412,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AdminDonosRouteImport
       parentRoute: typeof AdminRoute
     }
+    '/app/locacoes/': {
+      id: '/app/locacoes/'
+      path: '/'
+      fullPath: '/app/locacoes/'
+      preLoaderRoute: typeof AppLocacoesIndexRouteImport
+      parentRoute: typeof AppLocacoesRoute
+    }
     '/app/locacoes/nova': {
       id: '/app/locacoes/nova'
       path: '/nova'
@@ -445,10 +462,12 @@ const AdminRouteWithChildren = AdminRoute._addFileChildren(AdminRouteChildren)
 
 interface AppLocacoesRouteChildren {
   AppLocacoesNovaRoute: typeof AppLocacoesNovaRoute
+  AppLocacoesIndexRoute: typeof AppLocacoesIndexRoute
 }
 
 const AppLocacoesRouteChildren: AppLocacoesRouteChildren = {
   AppLocacoesNovaRoute: AppLocacoesNovaRoute,
+  AppLocacoesIndexRoute: AppLocacoesIndexRoute,
 }
 
 const AppLocacoesRouteWithChildren = AppLocacoesRoute._addFileChildren(
