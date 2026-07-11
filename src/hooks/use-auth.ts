@@ -41,13 +41,28 @@ export async function fetchProfileAndRole(userId: string): Promise<{
   profile: Profile | null;
   role: AppRole | null;
 }> {
-  const [profileRes, roleRes] = await Promise.all([
+  const [profileRes, rolesRes] = await Promise.all([
     supabase.from("profiles").select("*").eq("user_id", userId).maybeSingle(),
-    supabase.from("user_roles").select("role").eq("user_id", userId).maybeSingle(),
+    supabase.from("user_roles").select("role").eq("user_id", userId).limit(10),
   ]);
+  const roles = (rolesRes.data as { role: AppRole }[] | null) ?? [];
+  const role: AppRole | null = roles.some((r) => r.role === "platform_admin")
+    ? "platform_admin"
+    : roles.some((r) => r.role === "vehicle_owner")
+      ? "vehicle_owner"
+      : null;
+  // eslint-disable-next-line no-console
+  console.log("[auth] fetchProfileAndRole", {
+    userId,
+    profile: profileRes.data,
+    profileErr: profileRes.error?.message,
+    roles,
+    rolesErr: rolesRes.error?.message,
+    resolvedRole: role,
+  });
   return {
     profile: (profileRes.data as Profile | null) ?? null,
-    role: (roleRes.data?.role as AppRole | undefined) ?? null,
+    role,
   };
 }
 
