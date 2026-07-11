@@ -27,7 +27,8 @@ type Props = {
 };
 
 const PLANS = ["trial", "mensal", "anual"] as const;
-const STATUSES = ["trial", "ativa", "vencida", "cancelada"] as const;
+const STATUSES = ["trial", "ativa", "inadimplente", "cancelada"] as const;
+type SubStatus = (typeof STATUSES)[number];
 
 function toDateInputValue(iso: string) {
   const d = new Date(iso);
