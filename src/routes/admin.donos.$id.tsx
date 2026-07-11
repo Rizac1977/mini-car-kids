@@ -5,6 +5,7 @@ import { toast } from "sonner";
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
+import { Textarea } from "@/components/ui/textarea";
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
 import {
   ArrowLeft,
@@ -21,12 +22,16 @@ import {
   Calendar,
   Mail,
   User as UserIcon,
+  Settings,
+  Save,
+  BarChart3,
 } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { dateBR, currency } from "@/lib/mock-data";
 import type { AccountStatus } from "@/hooks/use-auth";
 import { AdminShell } from "./admin.index";
 import { ApproveOwnerDialog } from "@/components/approve-owner-dialog";
+import { ManageSubscriptionDialog } from "@/components/manage-subscription-dialog";
 
 export const Route = createFileRoute("/admin/donos/$id")({
   head: () => ({
@@ -54,6 +59,7 @@ type Profile = {
   state: string | null;
   profile_photo_url: string | null;
   account_status: AccountStatus;
+  admin_notes: string | null;
   created_at: string;
 };
 
@@ -99,7 +105,9 @@ function DonoDetailPage() {
   const { id: userId } = Route.useParams();
   const qc = useQueryClient();
   const [approveOpen, setApproveOpen] = useState(false);
+  const [manageOpen, setManageOpen] = useState(false);
   const [photoUrl, setPhotoUrl] = useState<string | null>(null);
+  const [notes, setNotes] = useState("");
 
   const { data: profile, isLoading } = useQuery({
     queryKey: ["admin", "dono", userId],
@@ -107,7 +115,7 @@ function DonoDetailPage() {
       const { data, error } = await supabase
         .from("profiles")
         .select(
-          "id,user_id,full_name,business_name,phone,city,state,profile_photo_url,account_status,created_at"
+          "id,user_id,full_name,business_name,phone,city,state,profile_photo_url,account_status,admin_notes,created_at"
         )
         .eq("user_id", userId)
         .maybeSingle();
@@ -185,6 +193,36 @@ function DonoDetailPage() {
       active = false;
     };
   }, [profile?.profile_photo_url]);
+
+  useEffect(() => {
+    if (profile) setNotes(profile.admin_notes ?? "");
+  }, [profile]);
+
+  const saveNotes = useMutation({
+    mutationFn: async () => {
+      const { data: userData } = await supabase.auth.getUser();
+      const adminId = userData.user?.id;
+      if (!adminId) throw new Error("Sessão expirada");
+      const { error } = await supabase
+        .from("profiles")
+        .update({ admin_notes: notes || null })
+        .eq("user_id", userId);
+      if (error) throw error;
+      await supabase.from("administrative_logs").insert({
+        administrator_id: adminId,
+        affected_user_id: userId,
+        action: "Observações atualizadas",
+        previous_data: { admin_notes: profile?.admin_notes ?? null },
+        new_data: { admin_notes: notes || null },
+      });
+    },
+    onSuccess: () => {
+      toast.success("Observações salvas");
+      void qc.invalidateQueries({ queryKey: ["admin", "dono", userId] });
+      void qc.invalidateQueries({ queryKey: ["admin", "dono", userId, "logs"] });
+    },
+    onError: (e: Error) => toast.error(e.message || "Erro ao salvar"),
+  });
 
   const stats = useMemo(() => {
     const list = rentals ?? [];
@@ -392,14 +430,25 @@ function DonoDetailPage() {
             <Play className="h-4 w-4" /> Reavaliar cadastro
           </Button>
         )}
+        {status !== "pendente" && (
+          <Button
+            variant="outline"
+            className="h-11 gap-1"
+            onClick={() => setManageOpen(true)}
+          >
+            <Settings className="h-4 w-4" /> Gerenciar assinatura
+          </Button>
+        )}
       </div>
 
       <Tabs defaultValue="info">
-        <TabsList className="w-full grid grid-cols-4 h-auto">
-          <TabsTrigger value="info" className="text-xs py-2">Perfil</TabsTrigger>
-          <TabsTrigger value="veiculos" className="text-xs py-2">Veículos</TabsTrigger>
-          <TabsTrigger value="locacoes" className="text-xs py-2">Locações</TabsTrigger>
-          <TabsTrigger value="log" className="text-xs py-2">Histórico</TabsTrigger>
+        <TabsList className="w-full grid grid-cols-6 h-auto">
+          <TabsTrigger value="info" className="text-[10px] py-2">Visão geral</TabsTrigger>
+          <TabsTrigger value="assinatura" className="text-[10px] py-2">Assinatura</TabsTrigger>
+          <TabsTrigger value="veiculos" className="text-[10px] py-2">Veículos</TabsTrigger>
+          <TabsTrigger value="locacoes" className="text-[10px] py-2">Locações</TabsTrigger>
+          <TabsTrigger value="relatorios" className="text-[10px] py-2">Relatórios</TabsTrigger>
+          <TabsTrigger value="log" className="text-[10px] py-2">Histórico</TabsTrigger>
         </TabsList>
 
         <TabsContent value="info" className="mt-4 space-y-2">
@@ -414,9 +463,33 @@ function DonoDetailPage() {
             />
             <Line icon={CheckCircle2} label="Status" value={status} capitalize />
           </Card>
-          {sub && (
+
+          <Card className="p-4 space-y-2">
+            <div className="font-semibold text-sm">Observações administrativas</div>
+            <p className="text-xs text-muted-foreground">
+              Visível apenas para administradores da plataforma.
+            </p>
+            <Textarea
+              value={notes}
+              onChange={(e) => setNotes(e.target.value)}
+              rows={4}
+              placeholder="Anote informações relevantes sobre este dono"
+            />
+            <Button
+              size="sm"
+              className="gap-1"
+              disabled={saveNotes.isPending || notes === (profile.admin_notes ?? "")}
+              onClick={() => saveNotes.mutate()}
+            >
+              <Save className="h-3.5 w-3.5" /> Salvar observações
+            </Button>
+          </Card>
+        </TabsContent>
+
+        <TabsContent value="assinatura" className="mt-4 space-y-2">
+          {sub ? (
             <Card className="p-4 text-sm space-y-2">
-              <div className="font-semibold mb-1">Assinatura</div>
+              <div className="font-semibold mb-1">Assinatura atual</div>
               <Line icon={CheckCircle2} label="Plano" value={sub.plan} capitalize />
               <Line icon={CheckCircle2} label="Situação" value={sub.status} capitalize />
               <Line icon={Calendar} label="Iniciada em" value={dateBR(sub.started_at)} />
@@ -425,6 +498,16 @@ function DonoDetailPage() {
                 label="Vence em"
                 value={`${dateBR(sub.current_period_end)} (${subDaysLeft} dia${subDaysLeft === 1 ? "" : "s"})`}
               />
+              <Button className="mt-2 w-full gap-1" onClick={() => setManageOpen(true)}>
+                <Settings className="h-4 w-4" /> Alterar plano ou vencimento
+              </Button>
+            </Card>
+          ) : (
+            <Card className="p-4 text-sm text-muted-foreground text-center space-y-3">
+              Nenhuma assinatura registrada.
+              <Button className="w-full gap-1" onClick={() => setManageOpen(true)}>
+                <Settings className="h-4 w-4" /> Criar assinatura
+              </Button>
             </Card>
           )}
         </TabsContent>
@@ -495,6 +578,25 @@ function DonoDetailPage() {
           )}
         </TabsContent>
 
+        <TabsContent value="relatorios" className="mt-4 space-y-2">
+          <div className="grid grid-cols-2 gap-2">
+            <StatCard icon={DollarSign} label="Faturamento total" value={currency(stats.revenue)} />
+            <StatCard icon={Timer} label="Locações finalizadas" value={String(stats.finalized)} />
+            <StatCard icon={Timer} label="Locações ativas" value={String(stats.active)} />
+            <StatCard
+              icon={DollarSign}
+              label="Ticket médio"
+              value={currency(stats.finalized > 0 ? stats.revenue / stats.finalized : 0)}
+            />
+          </div>
+          {stats.totalRentals === 0 && (
+            <Card className="p-4 text-sm text-muted-foreground text-center">
+              <BarChart3 className="h-6 w-6 mx-auto mb-2 opacity-50" />
+              Sem dados para gerar relatórios ainda.
+            </Card>
+          )}
+        </TabsContent>
+
         <TabsContent value="log" className="mt-4 space-y-2">
           {(logs ?? []).length === 0 ? (
             <Card className="p-4 text-sm text-muted-foreground text-center">
@@ -518,6 +620,13 @@ function DonoDetailPage() {
         onOpenChange={setApproveOpen}
         userId={userId}
         ownerName={profile.full_name}
+      />
+
+      <ManageSubscriptionDialog
+        open={manageOpen}
+        onOpenChange={setManageOpen}
+        userId={userId}
+        current={sub ?? null}
       />
     </AdminShell>
   );

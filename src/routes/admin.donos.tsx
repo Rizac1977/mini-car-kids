@@ -32,6 +32,7 @@ type Row = {
   state: string | null;
   account_status: AccountStatus;
   created_at: string;
+  subscriptions?: { status: string | null; current_period_end: string | null } | null;
 };
 
 const statusStyle: Record<string, string> = {
@@ -52,6 +53,11 @@ const filters = [
 function DonosPage() {
   const [filter, setFilter] = useState<(typeof filters)[number]["key"]>("todos");
   const [search, setSearch] = useState("");
+  const [stateFilter, setStateFilter] = useState("");
+  const [subStatus, setSubStatus] = useState<"todas" | "trial" | "ativa" | "inadimplente" | "cancelada" | "vencidas" | "vencendo">("todas");
+  const [fromDate, setFromDate] = useState("");
+  const [toDate, setToDate] = useState("");
+  const [showAdvanced, setShowAdvanced] = useState(false);
   const [approveTarget, setApproveTarget] = useState<{ userId: string; name: string } | null>(null);
   const qc = useQueryClient();
 
@@ -84,15 +90,23 @@ function DonosPage() {
     queryFn: async () => {
       const { data, error } = await supabase
         .from("profiles")
-        .select("id,user_id,full_name,business_name,city,state,account_status,created_at")
+        .select("id,user_id,full_name,business_name,city,state,account_status,created_at,subscriptions(status,current_period_end)")
         .order("created_at", { ascending: false });
       if (error) throw error;
-      return (data ?? []) as Row[];
+      return (data ?? []) as unknown as Row[];
     },
   });
 
   const rows = useMemo(() => {
     const q = search.trim().toLowerCase();
+    const nowIso = new Date().toISOString();
+    const in7 = new Date();
+    in7.setDate(in7.getDate() + 7);
+    const in7Iso = in7.toISOString();
+    const fromIso = fromDate ? new Date(fromDate + "T00:00:00").toISOString() : null;
+    const toIso = toDate ? new Date(toDate + "T23:59:59").toISOString() : null;
+    const stateQ = stateFilter.trim().toLowerCase();
+
     return (data ?? [])
       .filter((r) => (filter === "todos" ? true : r.account_status === filter))
       .filter((r) =>
@@ -101,8 +115,19 @@ function DonosPage() {
           : [r.full_name, r.business_name, r.city, r.state]
               .filter(Boolean)
               .some((v) => (v as string).toLowerCase().includes(q))
-      );
-  }, [data, filter, search]);
+      )
+      .filter((r) => (stateQ ? (r.state ?? "").toLowerCase().includes(stateQ) : true))
+      .filter((r) => (fromIso ? r.created_at >= fromIso : true))
+      .filter((r) => (toIso ? r.created_at <= toIso : true))
+      .filter((r) => {
+        if (subStatus === "todas") return true;
+        const s = r.subscriptions;
+        const end = s?.current_period_end ?? null;
+        if (subStatus === "vencidas") return !!end && end < nowIso;
+        if (subStatus === "vencendo") return !!end && end >= nowIso && end <= in7Iso;
+        return s?.status === subStatus;
+      });
+  }, [data, filter, search, stateFilter, subStatus, fromDate, toDate]);
 
   const pendingCount = (data ?? []).filter((r) => r.account_status === "pendente").length;
 
@@ -148,6 +173,79 @@ function DonosPage() {
             </button>
           ))}
         </div>
+
+        <button
+          type="button"
+          onClick={() => setShowAdvanced((v) => !v)}
+          className="text-xs text-muted-foreground underline underline-offset-2 self-start"
+        >
+          {showAdvanced ? "Ocultar filtros avançados" : "Mostrar filtros avançados"}
+        </button>
+
+        {showAdvanced && (
+          <Card className="p-3 space-y-3">
+            <div className="grid grid-cols-2 gap-2">
+              <div>
+                <label className="text-xs text-muted-foreground">Estado (UF)</label>
+                <Input
+                  placeholder="SP"
+                  value={stateFilter}
+                  onChange={(e) => setStateFilter(e.target.value)}
+                  className="h-9 mt-1"
+                />
+              </div>
+              <div>
+                <label className="text-xs text-muted-foreground">Assinatura</label>
+                <select
+                  value={subStatus}
+                  onChange={(e) => setSubStatus(e.target.value as typeof subStatus)}
+                  className="mt-1 h-9 w-full rounded-md border border-input bg-background px-2 text-sm"
+                >
+                  <option value="todas">Todas</option>
+                  <option value="trial">Trial</option>
+                  <option value="ativa">Ativa</option>
+                  <option value="inadimplente">Inadimplente</option>
+                  <option value="cancelada">Cancelada</option>
+                  <option value="vencendo">Vencendo em 7 dias</option>
+                  <option value="vencidas">Vencidas</option>
+                </select>
+              </div>
+              <div>
+                <label className="text-xs text-muted-foreground">Entrada de</label>
+                <Input
+                  type="date"
+                  value={fromDate}
+                  onChange={(e) => setFromDate(e.target.value)}
+                  className="h-9 mt-1"
+                />
+              </div>
+              <div>
+                <label className="text-xs text-muted-foreground">Até</label>
+                <Input
+                  type="date"
+                  value={toDate}
+                  onChange={(e) => setToDate(e.target.value)}
+                  className="h-9 mt-1"
+                />
+              </div>
+            </div>
+            {(stateFilter || subStatus !== "todas" || fromDate || toDate) && (
+              <Button
+                variant="outline"
+                className="h-8 w-full text-xs"
+                onClick={() => {
+                  setStateFilter("");
+                  setSubStatus("todas");
+                  setFromDate("");
+                  setToDate("");
+                }}
+              >
+                Limpar filtros
+              </Button>
+            )}
+          </Card>
+        )}
+
 
         {isLoading ? (
           <div className="py-16 grid place-items-center text-muted-foreground">
