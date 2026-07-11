@@ -346,7 +346,17 @@ function VehicleForm({
   form: FormState;
   setForm: (f: FormState) => void;
 }) {
-  const localPreview = form.photo_file ? URL.createObjectURL(form.photo_file) : null;
+  const [localPreview, setLocalPreview] = useState<string | null>(null);
+  useEffect(() => {
+    if (!form.photo_file) {
+      setLocalPreview(null);
+      return;
+    }
+    const url = URL.createObjectURL(form.photo_file);
+    setLocalPreview(url);
+    return () => URL.revokeObjectURL(url);
+  }, [form.photo_file]);
+
   const remotePreview = usePhotoUrl(localPreview ? null : form.photo_url);
   const preview = localPreview ?? remotePreview;
 
@@ -397,6 +407,7 @@ function VehicleForm({
     </div>
   );
 }
+
 
 // Assina URL do bucket privado para exibir a foto.
 function usePhotoUrl(path: string | null) {
