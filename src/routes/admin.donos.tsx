@@ -11,6 +11,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { dateBR } from "@/lib/mock-data";
 import type { AccountStatus } from "@/hooks/use-auth";
 import { AdminShell } from "./admin.index";
+import { ApproveOwnerDialog } from "@/components/approve-owner-dialog";
 
 export const Route = createFileRoute("/admin/donos")({
   head: () => ({
@@ -51,6 +52,7 @@ const filters = [
 function DonosPage() {
   const [filter, setFilter] = useState<(typeof filters)[number]["key"]>("todos");
   const [search, setSearch] = useState("");
+  const [approveTarget, setApproveTarget] = useState<{ userId: string; name: string } | null>(null);
   const qc = useQueryClient();
 
   const decide = useMutation({
@@ -66,12 +68,12 @@ function DonosPage() {
       await supabase.from("administrative_logs").insert({
         administrator_id: adminId,
         affected_user_id: userId,
-        action: next === "ativo" ? "Cadastro aprovado" : "Cadastro recusado",
+        action: "Cadastro recusado",
         new_data: { account_status: next },
       });
     },
-    onSuccess: (_r, v) => {
-      toast.success(v.next === "ativo" ? "Dono aprovado" : "Cadastro recusado");
+    onSuccess: () => {
+      toast.success("Cadastro recusado");
       void qc.invalidateQueries({ queryKey: ["admin", "donos"] });
     },
     onError: (e: Error) => toast.error(e.message || "Erro ao atualizar"),
@@ -199,7 +201,7 @@ function DonosPage() {
                       variant="outline"
                       className="h-10 gap-1 text-success border-success/40"
                       disabled={decide.isPending}
-                      onClick={() => decide.mutate({ userId: o.user_id, next: "ativo" })}
+                      onClick={() => setApproveTarget({ userId: o.user_id, name: o.full_name })}
                     >
                       <CheckCircle2 className="h-4 w-4" /> Aprovar
                     </Button>
@@ -218,6 +220,13 @@ function DonosPage() {
           </div>
         )}
       </div>
+
+      <ApproveOwnerDialog
+        open={!!approveTarget}
+        onOpenChange={(v) => !v && setApproveTarget(null)}
+        userId={approveTarget?.userId ?? ""}
+        ownerName={approveTarget?.name}
+      />
     </AdminShell>
   );
 }
