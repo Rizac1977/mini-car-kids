@@ -36,7 +36,7 @@ function DonoDetailPage() {
       <Card className="p-5 mb-4">
         <div className="flex items-start gap-4">
           <div className="h-14 w-14 rounded-full bg-primary text-primary-foreground grid place-items-center font-bold text-lg shrink-0">
-            {owner.name.split(" ").map((n) => n[0]).slice(0, 2).join("")}
+            {owner.name.split(" ").map((n: string) => n[0]).slice(0, 2).join("")}
           </div>
           <div className="flex-1 min-w-0">
             <div className="font-bold text-lg truncate">{owner.name}</div>
