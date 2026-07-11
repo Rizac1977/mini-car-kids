@@ -172,3 +172,25 @@ function Row({ k, v, highlight }: { k: string; v: string; highlight?: boolean })
     </div>
   );
 }
+
+function VehicleTile({ id, name, photoPath, selected, onSelect }: {
+  id: string; name: string; photoPath: string | null; selected: boolean; onSelect: () => void;
+}) {
+  const src = useVehiclePhotoUrl(photoPath);
+  return (
+    <button
+      key={id}
+      onClick={onSelect}
+      className={`p-3 rounded-xl border-2 flex flex-col items-center text-center transition-all ${
+        selected ? "border-primary bg-primary-soft" : "border-border bg-card"
+      }`}
+    >
+      {src ? (
+        <img src={src} alt={name} className="h-16 w-16 rounded-lg object-cover mb-1" />
+      ) : (
+        <div className="h-16 w-16 rounded-lg bg-muted grid place-items-center text-3xl mb-1">🚗</div>
+      )}
+      <div className="text-sm font-semibold truncate w-full">{name}</div>
+    </button>
+  );
+}
