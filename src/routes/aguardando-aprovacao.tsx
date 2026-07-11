@@ -5,7 +5,7 @@ import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { BrandLogo } from "@/components/brand-logo";
 import { supabase } from "@/integrations/supabase/client";
-import { fetchProfileAndRole, routeForUser, signOut, type AccountStatus } from "@/hooks/use-auth";
+import { fetchProfileAndRole, signOut, type AccountStatus } from "@/hooks/use-auth";
 
 export const Route = createFileRoute("/aguardando-aprovacao")({
   ssr: false,
@@ -47,23 +47,43 @@ const messages: Record<AccountStatus, { icon: React.ElementType; title: string; 
 
 function AguardandoPage() {
   const [status, setStatus] = useState<AccountStatus | null>(null);
+  const [checking, setChecking] = useState(true);
+  const [debug, setDebug] = useState<string>("");
   const navigate = useNavigate();
 
+  const check = async () => {
+    setChecking(true);
+    const { data: sessionData } = await supabase.auth.getSession();
+    if (!sessionData.session) {
+      navigate({ to: "/login" });
+      return;
+    }
+    // Força refresh do token para pegar claims mais recentes
+    await supabase.auth.refreshSession();
+    const { data } = await supabase.auth.getUser();
+    if (!data.user) {
+      navigate({ to: "/login" });
+      return;
+    }
+    const { profile, role } = await fetchProfileAndRole(data.user.id);
+    setDebug(`user=${data.user.email} role=${role ?? "null"} status=${profile?.account_status ?? "null"}`);
+    if (role === "platform_admin") {
+      window.location.href = "/admin";
+      return;
+    }
+    if (profile?.account_status === "ativo") {
+      window.location.href = "/app";
+      return;
+    }
+    setStatus(profile?.account_status ?? "pendente");
+    setChecking(false);
+  };
+
   useEffect(() => {
-    (async () => {
-      const { data } = await supabase.auth.getUser();
-      if (!data.user) {
-        navigate({ to: "/login" });
-        return;
-      }
-      const { profile, role } = await fetchProfileAndRole(data.user.id);
-      if (role === "platform_admin" || profile?.account_status === "ativo") {
-        navigate({ to: routeForUser(role, profile?.account_status ?? null) });
-        return;
-      }
-      setStatus(profile?.account_status ?? "pendente");
-    })();
-  }, [navigate]);
+    void check();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
 
   const m = messages[status ?? "pendente"];
   const Icon = m.icon;
@@ -82,16 +102,27 @@ function AguardandoPage() {
             <h1 className="text-xl font-bold">{m.title}</h1>
             <p className="text-sm text-muted-foreground mt-2">{m.body}</p>
           </div>
+          {debug && (
+            <p className="text-[10px] text-muted-foreground break-all">{debug}</p>
+          )}
+          <Button
+            className="w-full h-12 gap-2"
+            onClick={() => void check()}
+            disabled={checking}
+          >
+            {checking ? "Verificando..." : "Verificar novamente"}
+          </Button>
           <Button
             variant="outline"
             className="w-full h-12 gap-2"
             onClick={async () => {
               await signOut();
-              navigate({ to: "/login" });
+              window.location.href = "/login";
             }}
           >
             <LogOut className="h-4 w-4" /> Sair
           </Button>
+
         </Card>
       </div>
     </div>
