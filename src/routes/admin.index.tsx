@@ -253,10 +253,5 @@ function AdminDashboard() {
     </AdminShell>
   );
 }
-        </Link>
-      </div>
-    </AdminShell>
-  );
-}
 
 export { AdminShell };
