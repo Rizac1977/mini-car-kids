@@ -1,4 +1,5 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
+import { useEffect, useMemo, useState } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
 import { Card } from "@/components/ui/card";
@@ -14,14 +15,21 @@ import {
   Pause,
   Play,
   Loader2,
+  Car,
+  Timer,
+  DollarSign,
+  Calendar,
+  Mail,
+  User as UserIcon,
 } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
-import { dateBR } from "@/lib/mock-data";
+import { dateBR, formatBRL } from "@/lib/mock-data";
 import type { AccountStatus } from "@/hooks/use-auth";
 import { AdminShell } from "./admin.index";
+import { ApproveOwnerDialog } from "@/components/approve-owner-dialog";
 
 export const Route = createFileRoute("/admin/donos/$id")({
-  head: ({ params }) => ({
+  head: () => ({
     meta: [
       { title: `Dono — Admin` },
       { name: "description", content: `Detalhes do dono cadastrado.` },
@@ -44,6 +52,7 @@ type Profile = {
   phone: string | null;
   city: string | null;
   state: string | null;
+  profile_photo_url: string | null;
   account_status: AccountStatus;
   created_at: string;
 };
@@ -53,6 +62,31 @@ type LogRow = {
   action: string;
   new_data: Record<string, unknown> | null;
   created_at: string;
+};
+
+type Sub = {
+  plan: string;
+  status: string;
+  started_at: string;
+  current_period_end: string;
+};
+
+type Vehicle = {
+  id: string;
+  name: string;
+  status: string;
+  photo_url: string | null;
+  created_at: string;
+};
+
+type Rental = {
+  id: string;
+  status: string;
+  total_amount: number | null;
+  price_per_minute: number | null;
+  planned_minutes: number | null;
+  started_at: string;
+  ended_at: string | null;
 };
 
 const statusStyle: Record<string, string> = {
@@ -65,17 +99,60 @@ const statusStyle: Record<string, string> = {
 function DonoDetailPage() {
   const { id: userId } = Route.useParams();
   const qc = useQueryClient();
+  const [approveOpen, setApproveOpen] = useState(false);
+  const [photoUrl, setPhotoUrl] = useState<string | null>(null);
 
   const { data: profile, isLoading } = useQuery({
     queryKey: ["admin", "dono", userId],
     queryFn: async () => {
       const { data, error } = await supabase
         .from("profiles")
-        .select("id,user_id,full_name,business_name,phone,city,state,account_status,created_at")
+        .select(
+          "id,user_id,full_name,business_name,phone,city,state,profile_photo_url,account_status,created_at"
+        )
         .eq("user_id", userId)
         .maybeSingle();
       if (error) throw error;
       return data as Profile | null;
+    },
+  });
+
+  const { data: sub } = useQuery({
+    queryKey: ["admin", "dono", userId, "sub"],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from("subscriptions")
+        .select("plan,status,started_at,current_period_end")
+        .eq("user_id", userId)
+        .maybeSingle();
+      if (error) throw error;
+      return (data ?? null) as Sub | null;
+    },
+  });
+
+  const { data: vehicles } = useQuery({
+    queryKey: ["admin", "dono", userId, "vehicles"],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from("vehicles")
+        .select("id,name,status,photo_url,created_at")
+        .eq("owner_id", userId)
+        .order("created_at", { ascending: false });
+      if (error) throw error;
+      return (data ?? []) as Vehicle[];
+    },
+  });
+
+  const { data: rentals } = useQuery({
+    queryKey: ["admin", "dono", userId, "rentals"],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from("rentals")
+        .select("id,status,total_amount,price_per_minute,planned_minutes,started_at,ended_at")
+        .eq("owner_id", userId)
+        .order("started_at", { ascending: false });
+      if (error) throw error;
+      return (data ?? []) as Rental[];
     },
   });
 
@@ -93,6 +170,36 @@ function DonoDetailPage() {
     },
   });
 
+  useEffect(() => {
+    let active = true;
+    (async () => {
+      if (!profile?.profile_photo_url) {
+        setPhotoUrl(null);
+        return;
+      }
+      const { data } = await supabase.storage
+        .from("profile-photos")
+        .createSignedUrl(profile.profile_photo_url, 3600);
+      if (active) setPhotoUrl(data?.signedUrl ?? null);
+    })();
+    return () => {
+      active = false;
+    };
+  }, [profile?.profile_photo_url]);
+
+  const stats = useMemo(() => {
+    const list = rentals ?? [];
+    const finalized = list.filter((r) => r.status === "finalizada");
+    const active = list.filter((r) => r.status === "ativa").length;
+    const revenue = finalized.reduce((s, r) => s + Number(r.total_amount ?? 0), 0);
+    return {
+      totalRentals: list.length,
+      finalized: finalized.length,
+      active,
+      revenue,
+    };
+  }, [rentals]);
+
   const changeStatus = useMutation({
     mutationFn: async (next: AccountStatus) => {
       if (!profile) throw new Error("Perfil não carregado");
@@ -107,7 +214,7 @@ function DonoDetailPage() {
       if (error) throw error;
 
       const actionMap: Record<AccountStatus, string> = {
-        ativo: "Cadastro aprovado",
+        ativo: "Conta reativada",
         suspenso: "Conta suspensa",
         recusado: "Cadastro recusado",
         pendente: "Conta marcada como pendente",
@@ -121,16 +228,8 @@ function DonoDetailPage() {
         new_data: { account_status: next },
       });
     },
-    onSuccess: (_r, next) => {
-      toast.success(
-        next === "ativo"
-          ? "Dono aprovado com sucesso"
-          : next === "suspenso"
-            ? "Conta suspensa"
-            : next === "recusado"
-              ? "Cadastro recusado"
-              : "Status atualizado"
-      );
+    onSuccess: () => {
+      toast.success("Status atualizado");
       void qc.invalidateQueries({ queryKey: ["admin", "dono", userId] });
       void qc.invalidateQueries({ queryKey: ["admin", "dono", userId, "logs"] });
       void qc.invalidateQueries({ queryKey: ["admin", "donos"] });
@@ -160,6 +259,12 @@ function DonoDetailPage() {
 
   const status = profile.account_status;
   const pending = changeStatus.isPending;
+  const subDaysLeft = sub
+    ? Math.max(
+        0,
+        Math.ceil((new Date(sub.current_period_end).getTime() - Date.now()) / 86400000)
+      )
+    : 0;
 
   return (
     <AdminShell title="Detalhes do dono">
@@ -172,14 +277,22 @@ function DonoDetailPage() {
 
       <Card className="p-5 mb-4">
         <div className="flex items-start gap-4">
-          <div className="h-14 w-14 rounded-full bg-primary text-primary-foreground grid place-items-center font-bold text-lg shrink-0">
-            {profile.full_name
-              .split(" ")
-              .map((n) => n[0])
-              .slice(0, 2)
-              .join("")
-              .toUpperCase()}
-          </div>
+          {photoUrl ? (
+            <img
+              src={photoUrl}
+              alt={profile.full_name}
+              className="h-16 w-16 rounded-full object-cover shrink-0"
+            />
+          ) : (
+            <div className="h-16 w-16 rounded-full bg-primary text-primary-foreground grid place-items-center font-bold text-lg shrink-0">
+              {profile.full_name
+                .split(" ")
+                .map((n) => n[0])
+                .slice(0, 2)
+                .join("")
+                .toUpperCase()}
+            </div>
+          )}
           <div className="flex-1 min-w-0">
             <div className="font-bold text-lg truncate">{profile.full_name}</div>
             {profile.business_name && (
@@ -194,6 +307,11 @@ function DonoDetailPage() {
               >
                 {status}
               </Badge>
+              {sub && (
+                <Badge variant="outline" className="capitalize">
+                  {sub.plan} · {sub.status}
+                </Badge>
+              )}
             </div>
           </div>
         </div>
@@ -209,28 +327,47 @@ function DonoDetailPage() {
               {[profile.city, profile.state].filter(Boolean).join("/")}
             </div>
           )}
-          <div className="text-xs text-muted-foreground">
-            Cadastro em {dateBR(profile.created_at)}
+          <div className="flex items-center gap-2 text-muted-foreground">
+            <Calendar className="h-4 w-4" /> Cadastro em {dateBR(profile.created_at)}
           </div>
         </div>
       </Card>
 
-      <div className="grid grid-cols-3 gap-2 mb-4">
-        {status !== "ativo" && (
-          <Button
-            variant="outline"
-            className="h-11 gap-1 text-success border-success/40 col-span-3"
-            disabled={pending}
-            onClick={() => changeStatus.mutate("ativo")}
-          >
-            <CheckCircle2 className="h-4 w-4" />
-            {status === "pendente" ? "Aprovar cadastro" : "Reativar conta"}
-          </Button>
+      <div className="grid grid-cols-2 gap-2 mb-4">
+        <StatCard icon={Car} label="Veículos" value={String(vehicles?.length ?? 0)} />
+        <StatCard icon={Timer} label="Locações" value={String(stats.totalRentals)} />
+        <StatCard icon={DollarSign} label="Faturamento" value={formatBRL(stats.revenue)} />
+        <StatCard
+          icon={Calendar}
+          label="Teste restante"
+          value={sub ? `${subDaysLeft} dia${subDaysLeft === 1 ? "" : "s"}` : "—"}
+        />
+      </div>
+
+      <div className="grid grid-cols-1 gap-2 mb-4">
+        {status === "pendente" && (
+          <>
+            <Button
+              className="h-11 gap-1"
+              disabled={pending}
+              onClick={() => setApproveOpen(true)}
+            >
+              <CheckCircle2 className="h-4 w-4" /> Aprovar cadastro
+            </Button>
+            <Button
+              variant="outline"
+              className="h-11 gap-1 text-destructive border-destructive/40"
+              disabled={pending}
+              onClick={() => changeStatus.mutate("recusado")}
+            >
+              <XCircle className="h-4 w-4" /> Recusar cadastro
+            </Button>
+          </>
         )}
         {status === "ativo" && (
           <Button
             variant="outline"
-            className="h-11 gap-1 text-warning-foreground border-warning/40 col-span-3"
+            className="h-11 gap-1 text-warning-foreground border-warning/40"
             disabled={pending}
             onClick={() => changeStatus.mutate("suspenso")}
           >
@@ -239,28 +376,17 @@ function DonoDetailPage() {
         )}
         {status === "suspenso" && (
           <Button
-            variant="outline"
-            className="h-11 gap-1 col-span-3"
+            className="h-11 gap-1"
             disabled={pending}
-            onClick={() => changeStatus.mutate("pendente")}
+            onClick={() => changeStatus.mutate("ativo")}
           >
-            <Play className="h-4 w-4" /> Voltar para pendente
-          </Button>
-        )}
-        {status === "pendente" && (
-          <Button
-            variant="outline"
-            className="h-11 gap-1 text-destructive border-destructive/40 col-span-3"
-            disabled={pending}
-            onClick={() => changeStatus.mutate("recusado")}
-          >
-            <XCircle className="h-4 w-4" /> Recusar cadastro
+            <Play className="h-4 w-4" /> Reativar conta
           </Button>
         )}
         {status === "recusado" && (
           <Button
             variant="outline"
-            className="h-11 gap-1 col-span-3"
+            className="h-11 gap-1"
             disabled={pending}
             onClick={() => changeStatus.mutate("pendente")}
           >
@@ -269,15 +395,106 @@ function DonoDetailPage() {
         )}
       </div>
 
-      <Tabs defaultValue="log">
-        <TabsList className="w-full grid grid-cols-2 h-auto">
-          <TabsTrigger value="log" className="text-xs py-2">
-            Histórico de ações
-          </TabsTrigger>
-          <TabsTrigger value="info" className="text-xs py-2">
-            Informações
-          </TabsTrigger>
+      <Tabs defaultValue="info">
+        <TabsList className="w-full grid grid-cols-4 h-auto">
+          <TabsTrigger value="info" className="text-xs py-2">Perfil</TabsTrigger>
+          <TabsTrigger value="veiculos" className="text-xs py-2">Veículos</TabsTrigger>
+          <TabsTrigger value="locacoes" className="text-xs py-2">Locações</TabsTrigger>
+          <TabsTrigger value="log" className="text-xs py-2">Histórico</TabsTrigger>
         </TabsList>
+
+        <TabsContent value="info" className="mt-4 space-y-2">
+          <Card className="p-4 text-sm space-y-2">
+            <Line icon={UserIcon} label="Nome" value={profile.full_name} />
+            <Line icon={Mail} label="Negócio" value={profile.business_name ?? "—"} />
+            <Line icon={Phone} label="Telefone" value={profile.phone ?? "—"} />
+            <Line
+              icon={MapPin}
+              label="Localização"
+              value={[profile.city, profile.state].filter(Boolean).join("/") || "—"}
+            />
+            <Line icon={CheckCircle2} label="Status" value={status} capitalize />
+          </Card>
+          {sub && (
+            <Card className="p-4 text-sm space-y-2">
+              <div className="font-semibold mb-1">Assinatura</div>
+              <Line icon={CheckCircle2} label="Plano" value={sub.plan} capitalize />
+              <Line icon={CheckCircle2} label="Situação" value={sub.status} capitalize />
+              <Line icon={Calendar} label="Iniciada em" value={dateBR(sub.started_at)} />
+              <Line
+                icon={Calendar}
+                label="Vence em"
+                value={`${dateBR(sub.current_period_end)} (${subDaysLeft} dia${subDaysLeft === 1 ? "" : "s"})`}
+              />
+            </Card>
+          )}
+        </TabsContent>
+
+        <TabsContent value="veiculos" className="mt-4 space-y-2">
+          {(vehicles ?? []).length === 0 ? (
+            <Card className="p-4 text-sm text-muted-foreground text-center">
+              Nenhum veículo cadastrado.
+            </Card>
+          ) : (
+            (vehicles ?? []).map((v) => (
+              <Card key={v.id} className="p-3 text-sm flex items-center gap-3">
+                <div className="h-10 w-10 rounded bg-muted grid place-items-center shrink-0">
+                  <Car className="h-4 w-4 text-muted-foreground" />
+                </div>
+                <div className="flex-1 min-w-0">
+                  <div className="font-medium truncate">{v.name}</div>
+                  <div className="text-xs text-muted-foreground">
+                    Cadastro em {dateBR(v.created_at)}
+                  </div>
+                </div>
+                <Badge variant="outline" className="capitalize">
+                  {v.status.replace("_", " ")}
+                </Badge>
+              </Card>
+            ))
+          )}
+        </TabsContent>
+
+        <TabsContent value="locacoes" className="mt-4 space-y-2">
+          <Card className="p-3 text-sm grid grid-cols-3 gap-2 text-center">
+            <div>
+              <div className="text-xs text-muted-foreground">Ativas</div>
+              <div className="font-bold">{stats.active}</div>
+            </div>
+            <div>
+              <div className="text-xs text-muted-foreground">Finalizadas</div>
+              <div className="font-bold">{stats.finalized}</div>
+            </div>
+            <div>
+              <div className="text-xs text-muted-foreground">Total</div>
+              <div className="font-bold">{stats.totalRentals}</div>
+            </div>
+          </Card>
+          {(rentals ?? []).slice(0, 30).map((r) => (
+            <Card key={r.id} className="p-3 text-sm">
+              <div className="flex justify-between items-start gap-2">
+                <div className="min-w-0">
+                  <div className="font-medium capitalize">{r.status}</div>
+                  <div className="text-xs text-muted-foreground">
+                    {new Date(r.started_at).toLocaleString("pt-BR")}
+                    {r.ended_at && ` → ${new Date(r.ended_at).toLocaleTimeString("pt-BR", { hour: "2-digit", minute: "2-digit" })}`}
+                  </div>
+                </div>
+                <div className="text-right">
+                  <div className="font-semibold">{formatBRL(Number(r.total_amount ?? 0))}</div>
+                  <div className="text-xs text-muted-foreground">
+                    {r.planned_minutes ?? 0} min
+                  </div>
+                </div>
+              </div>
+            </Card>
+          ))}
+          {(rentals ?? []).length === 0 && (
+            <Card className="p-4 text-sm text-muted-foreground text-center">
+              Nenhuma locação registrada.
+            </Card>
+          )}
+        </TabsContent>
 
         <TabsContent value="log" className="mt-4 space-y-2">
           {(logs ?? []).length === 0 ? (
@@ -295,37 +512,54 @@ function DonoDetailPage() {
             ))
           )}
         </TabsContent>
-
-        <TabsContent value="info" className="mt-4 space-y-2">
-          <Card className="p-4 text-sm space-y-2">
-            <Line label="Nome" value={profile.full_name} />
-            <Line label="Negócio" value={profile.business_name ?? "—"} />
-            <Line label="Telefone" value={profile.phone ?? "—"} />
-            <Line
-              label="Localização"
-              value={[profile.city, profile.state].filter(Boolean).join("/") || "—"}
-            />
-            <Line label="Status" value={status} capitalize />
-          </Card>
-        </TabsContent>
       </Tabs>
+
+      <ApproveOwnerDialog
+        open={approveOpen}
+        onOpenChange={setApproveOpen}
+        userId={userId}
+        ownerName={profile.full_name}
+      />
     </AdminShell>
   );
 }
 
+function StatCard({
+  icon: Icon,
+  label,
+  value,
+}: {
+  icon: typeof Car;
+  label: string;
+  value: string;
+}) {
+  return (
+    <Card className="p-3">
+      <div className="flex items-center gap-2 text-xs text-muted-foreground">
+        <Icon className="h-3.5 w-3.5" /> {label}
+      </div>
+      <div className="mt-1 text-lg font-bold">{value}</div>
+    </Card>
+  );
+}
+
 function Line({
+  icon: Icon,
   label,
   value,
   capitalize,
 }: {
+  icon: typeof UserIcon;
   label: string;
   value: string;
   capitalize?: boolean;
 }) {
   return (
-    <div className="flex justify-between gap-2">
-      <span className="text-muted-foreground">{label}</span>
-      <span className={capitalize ? "capitalize" : ""}>{value}</span>
+    <div className="flex justify-between gap-2 items-center">
+      <span className="text-muted-foreground flex items-center gap-2">
+        <Icon className="h-3.5 w-3.5" /> {label}
+      </span>
+      <span className={capitalize ? "capitalize text-right" : "text-right"}>{value}</span>
     </div>
   );
 }
