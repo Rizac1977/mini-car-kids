@@ -182,6 +182,68 @@ export type Database = {
         }
         Relationships: []
       }
+      vehicles: {
+        Row: {
+          category: string | null
+          code: string | null
+          color: string | null
+          created_at: string
+          id: string
+          location_id: string | null
+          model: string | null
+          name: string
+          notes: string | null
+          photo_url: string | null
+          purchase_date: string | null
+          purchase_value: number | null
+          status: Database["public"]["Enums"]["vehicle_status"]
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          category?: string | null
+          code?: string | null
+          color?: string | null
+          created_at?: string
+          id?: string
+          location_id?: string | null
+          model?: string | null
+          name: string
+          notes?: string | null
+          photo_url?: string | null
+          purchase_date?: string | null
+          purchase_value?: number | null
+          status?: Database["public"]["Enums"]["vehicle_status"]
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          category?: string | null
+          code?: string | null
+          color?: string | null
+          created_at?: string
+          id?: string
+          location_id?: string | null
+          model?: string | null
+          name?: string
+          notes?: string | null
+          photo_url?: string | null
+          purchase_date?: string | null
+          purchase_value?: number | null
+          status?: Database["public"]["Enums"]["vehicle_status"]
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "vehicles_location_id_fkey"
+            columns: ["location_id"]
+            isOneToOne: false
+            referencedRelation: "locations"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
     }
     Views: {
       [_ in never]: never
@@ -199,6 +261,7 @@ export type Database = {
       account_status: "pendente" | "ativo" | "suspenso" | "recusado"
       app_role: "platform_admin" | "vehicle_owner"
       subscription_status: "trial" | "ativa" | "inadimplente" | "cancelada"
+      vehicle_status: "disponivel" | "em_locacao" | "manutencao" | "inativo"
     }
     CompositeTypes: {
       [_ in never]: never
@@ -329,6 +392,7 @@ export const Constants = {
       account_status: ["pendente", "ativo", "suspenso", "recusado"],
       app_role: ["platform_admin", "vehicle_owner"],
       subscription_status: ["trial", "ativa", "inadimplente", "cancelada"],
+      vehicle_status: ["disponivel", "em_locacao", "manutencao", "inativo"],
     },
   },
 } as const
