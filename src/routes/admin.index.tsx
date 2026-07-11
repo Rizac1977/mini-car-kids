@@ -176,7 +176,7 @@ function AdminDashboard() {
         supabase.from("profiles").select("account_status"),
         supabase.from("vehicles").select("id", { count: "exact", head: true }),
         supabase.from("rentals").select("amount,status"),
-        supabase.from("subscriptions").select("status,expires_at"),
+        supabase.from("subscriptions").select("status,current_period_end"),
         supabase
           .from("profiles")
           .select("id", { count: "exact", head: true })
@@ -185,14 +185,14 @@ function AdminDashboard() {
 
       const profiles = (profilesRes.data ?? []) as { account_status: string }[];
       const rentals = (rentalsRes.data ?? []) as { amount: number; status: string }[];
-      const subs = (subsRes.data ?? []) as { status: string; expires_at: string | null }[];
+      const subs = (subsRes.data ?? []) as { status: string; current_period_end: string | null }[];
 
       return {
         totalOwners: profiles.length,
         activeOwners: profiles.filter((p) => p.account_status === "ativo").length,
         pending: profiles.filter((p) => p.account_status === "pendente").length,
         expired: subs.filter(
-          (s) => s.status === "vencida" || (s.expires_at && s.expires_at < nowIso && s.status !== "ativa"),
+          (s) => s.status === "vencida" || (s.current_period_end && s.current_period_end < nowIso && s.status !== "ativa"),
         ).length,
         totalVehicles: vehiclesRes.count ?? 0,
         totalRentals: rentals.length,
