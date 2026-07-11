@@ -51,6 +51,31 @@ const filters = [
 function DonosPage() {
   const [filter, setFilter] = useState<(typeof filters)[number]["key"]>("todos");
   const [search, setSearch] = useState("");
+  const qc = useQueryClient();
+
+  const decide = useMutation({
+    mutationFn: async ({ userId, next }: { userId: string; next: AccountStatus }) => {
+      const { data: userData } = await supabase.auth.getUser();
+      const adminId = userData.user?.id;
+      if (!adminId) throw new Error("Sessão expirada");
+      const { error } = await supabase
+        .from("profiles")
+        .update({ account_status: next })
+        .eq("user_id", userId);
+      if (error) throw error;
+      await supabase.from("administrative_logs").insert({
+        administrator_id: adminId,
+        affected_user_id: userId,
+        action: next === "ativo" ? "Cadastro aprovado" : "Cadastro recusado",
+        new_data: { account_status: next },
+      });
+    },
+    onSuccess: (_r, v) => {
+      toast.success(v.next === "ativo" ? "Dono aprovado" : "Cadastro recusado");
+      void qc.invalidateQueries({ queryKey: ["admin", "donos"] });
+    },
+    onError: (e: Error) => toast.error(e.message || "Erro ao atualizar"),
+  });
 
   const { data, isLoading } = useQuery({
     queryKey: ["admin", "donos"],
