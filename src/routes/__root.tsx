@@ -77,14 +77,13 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
     meta: [
       { charSet: "utf-8" },
       { name: "viewport", content: "width=device-width, initial-scale=1" },
-      { title: "Lovable App" },
-      { name: "description", content: "Lovable Generated Project" },
-      { name: "author", content: "Lovable" },
-      { property: "og:title", content: "Lovable App" },
-      { property: "og:description", content: "Lovable Generated Project" },
+      { title: "MiniCar Gestão" },
+      { name: "description", content: "Controle o tempo, valores e histórico das locações dos seus veículos elétricos infantis." },
+      { name: "author", content: "MiniCar Gestão" },
+      { property: "og:title", content: "MiniCar Gestão" },
+      { property: "og:description", content: "Plataforma de gestão de locações por tempo para veículos elétricos infantis." },
       { property: "og:type", content: "website" },
       { name: "twitter:card", content: "summary_large_image" },
-      { name: "twitter:site", content: "@Lovable" },
     ],
     links: [
       {
