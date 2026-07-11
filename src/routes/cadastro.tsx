@@ -8,6 +8,7 @@ import { Label } from "@/components/ui/label";
 import { Checkbox } from "@/components/ui/checkbox";
 import { BrandLogo } from "@/components/brand-logo";
 import { supabase } from "@/integrations/supabase/client";
+import { translateAuthError } from "@/lib/auth-errors";
 
 export const Route = createFileRoute("/cadastro")({
   ssr: false,
@@ -67,7 +68,7 @@ function CadastroPage() {
       },
     });
     if (error) {
-      toast.error(error.message);
+      toast.error(translateAuthError(error.message));
       setLoading(false);
       return;
     }
@@ -99,6 +100,9 @@ function CadastroPage() {
             <F label="Estado" value={form.state} onChange={(v) => update("state", v)} placeholder="UF" />
           </div>
           <F label="Senha *" type="password" value={form.password} onChange={(v) => update("password", v)} required />
+          <p className="text-xs text-muted-foreground -mt-2">
+            Mínimo 8 caracteres. Evite senhas comuns (ex.: 12345678, senha123) — elas são bloqueadas por segurança.
+          </p>
           <F label="Confirmar senha *" type="password" value={form.password2} onChange={(v) => update("password2", v)} required />
 
           <label className="flex items-start gap-2 text-sm pt-2 cursor-pointer">
