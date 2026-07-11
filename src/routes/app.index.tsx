@@ -83,8 +83,22 @@ function fmtCountdown(ms: number) {
 }
 
 function DashboardPage() {
-  const { user, profile } = useAuth();
+  const { user } = useAuth();
   const [, setTick] = useState(0);
+
+  const { data: profile } = useQuery({
+    queryKey: ["dashboard-profile", user?.id],
+    enabled: !!user,
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from("profiles")
+        .select("full_name")
+        .eq("user_id", user!.id)
+        .maybeSingle();
+      if (error) throw error;
+      return data as { full_name: string | null } | null;
+    },
+  });
 
   useEffect(() => {
     const t = setInterval(() => setTick((n) => n + 1), 1000);
