@@ -14,14 +14,13 @@ import { toast } from "sonner";
 type ActiveRental = {
   id: string;
   vehicle_id: string;
-  location_id: string;
   planned_minutes: number;
   amount: number;
   started_at: string;
   planned_end_at: string;
   vehicles: { name: string; photo_url: string | null } | null;
-  locations: { name: string } | null;
 };
+
 
 export const Route = createFileRoute("/app/locacoes/")({
   head: () => ({
@@ -50,7 +49,8 @@ function LocacoesPage() {
     queryFn: async () => {
       const { data, error } = await supabase
         .from("rentals")
-        .select("id,vehicle_id,location_id,planned_minutes,amount,started_at,planned_end_at,vehicles(name,photo_url),locations(name)")
+        .select("id,vehicle_id,planned_minutes,amount,started_at,planned_end_at,vehicles(name,photo_url)")
+
         .eq("user_id", user!.id)
         .eq("status", "ativa")
         .order("planned_end_at");
@@ -136,8 +136,8 @@ function LocacoesPage() {
                   )}
                   <div className="flex-1 min-w-0">
                     <div className="font-bold truncate">{r.vehicles?.name ?? "Veículo"}</div>
-                    <div className="text-xs text-muted-foreground truncate">{r.locations?.name}</div>
-                    <div className="mt-1 text-xs text-muted-foreground flex items-center gap-1">
+                    <div className="mt-0.5 text-xs text-muted-foreground flex items-center gap-1">
+
                       <Clock className="h-3 w-3" /> {timeBR(r.started_at)} → {timeBR(r.planned_end_at)}
                     </div>
                   </div>

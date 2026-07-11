@@ -10,7 +10,7 @@ import {
   Clock,
   AlertTriangle,
   Car,
-  MapPin,
+  
   Timer,
   DollarSign,
   UserPlus,
@@ -168,7 +168,7 @@ function AdminDashboard() {
           <Stat icon={Clock} label="Cadastros pendentes" value={String(admins.pending)} tone="warning" />
           <Stat icon={AlertTriangle} label="Assinaturas vencidas" value={String(admins.expired)} tone="destructive" />
           <Stat icon={Car} label="Veículos" value={String(admins.totalVehicles)} />
-          <Stat icon={MapPin} label="Locais" value={String(admins.totalLocations)} />
+
           <Stat icon={Timer} label="Locações registradas" value={admins.totalRentals.toLocaleString("pt-BR")} />
           <Stat icon={DollarSign} label="Volume financeiro" value={currency(admins.volume)} tone="accent" />
         </div>
