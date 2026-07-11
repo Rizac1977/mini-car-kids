@@ -194,6 +194,36 @@ function DonoDetailPage() {
     };
   }, [profile?.profile_photo_url]);
 
+  useEffect(() => {
+    if (profile) setNotes(profile.admin_notes ?? "");
+  }, [profile]);
+
+  const saveNotes = useMutation({
+    mutationFn: async () => {
+      const { data: userData } = await supabase.auth.getUser();
+      const adminId = userData.user?.id;
+      if (!adminId) throw new Error("Sessão expirada");
+      const { error } = await supabase
+        .from("profiles")
+        .update({ admin_notes: notes || null })
+        .eq("user_id", userId);
+      if (error) throw error;
+      await supabase.from("administrative_logs").insert({
+        administrator_id: adminId,
+        affected_user_id: userId,
+        action: "Observações atualizadas",
+        previous_data: { admin_notes: profile?.admin_notes ?? null },
+        new_data: { admin_notes: notes || null },
+      });
+    },
+    onSuccess: () => {
+      toast.success("Observações salvas");
+      void qc.invalidateQueries({ queryKey: ["admin", "dono", userId] });
+      void qc.invalidateQueries({ queryKey: ["admin", "dono", userId, "logs"] });
+    },
+    onError: (e: Error) => toast.error(e.message || "Erro ao salvar"),
+  });
+
   const stats = useMemo(() => {
     const list = rentals ?? [];
     const finalized = list.filter((r) => r.status === "finalizada");
