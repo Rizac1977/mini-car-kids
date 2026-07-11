@@ -626,7 +626,7 @@ function DonoDetailPage() {
         open={manageOpen}
         onOpenChange={setManageOpen}
         userId={userId}
-        current={sub}
+        current={sub ?? null}
       />
     </AdminShell>
   );
