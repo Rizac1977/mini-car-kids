@@ -266,6 +266,7 @@ function VeiculosPage() {
               <VehicleCard
                 key={v.id}
                 v={v}
+                rental={rentalByVehicle.get(v.id) ?? null}
                 onEdit={() =>
                   setEditing({
                     id: v.id,
