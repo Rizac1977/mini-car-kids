@@ -47,23 +47,43 @@ const messages: Record<AccountStatus, { icon: React.ElementType; title: string; 
 
 function AguardandoPage() {
   const [status, setStatus] = useState<AccountStatus | null>(null);
+  const [checking, setChecking] = useState(true);
+  const [debug, setDebug] = useState<string>("");
   const navigate = useNavigate();
 
+  const check = async () => {
+    setChecking(true);
+    const { data: sessionData } = await supabase.auth.getSession();
+    if (!sessionData.session) {
+      navigate({ to: "/login" });
+      return;
+    }
+    // Força refresh do token para pegar claims mais recentes
+    await supabase.auth.refreshSession();
+    const { data } = await supabase.auth.getUser();
+    if (!data.user) {
+      navigate({ to: "/login" });
+      return;
+    }
+    const { profile, role } = await fetchProfileAndRole(data.user.id);
+    setDebug(`user=${data.user.email} role=${role ?? "null"} status=${profile?.account_status ?? "null"}`);
+    if (role === "platform_admin") {
+      window.location.href = "/admin";
+      return;
+    }
+    if (profile?.account_status === "ativo") {
+      window.location.href = "/app";
+      return;
+    }
+    setStatus(profile?.account_status ?? "pendente");
+    setChecking(false);
+  };
+
   useEffect(() => {
-    (async () => {
-      const { data } = await supabase.auth.getUser();
-      if (!data.user) {
-        navigate({ to: "/login" });
-        return;
-      }
-      const { profile, role } = await fetchProfileAndRole(data.user.id);
-      if (role === "platform_admin" || profile?.account_status === "ativo") {
-        navigate({ to: routeForUser(role, profile?.account_status ?? null) });
-        return;
-      }
-      setStatus(profile?.account_status ?? "pendente");
-    })();
-  }, [navigate]);
+    void check();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
 
   const m = messages[status ?? "pendente"];
   const Icon = m.icon;
