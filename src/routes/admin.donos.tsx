@@ -6,7 +6,8 @@ import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
 import { Search, ChevronRight, Loader2 } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
-import { dateBR, type AccountStatus } from "@/lib/mock-data";
+import { dateBR } from "@/lib/mock-data";
+import type { AccountStatus } from "@/hooks/use-auth";
 import { AdminShell } from "./admin.index";
 
 export const Route = createFileRoute("/admin/donos")({
