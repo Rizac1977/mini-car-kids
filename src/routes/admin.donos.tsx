@@ -158,8 +158,8 @@ function DonosPage() {
         ) : (
           <div className="space-y-3">
             {rows.map((o) => (
-              <Link key={o.id} to="/admin/donos/$id" params={{ id: o.user_id }}>
-                <Card className="p-4 hover:bg-muted/40 transition-colors">
+              <Card key={o.id} className="p-4">
+                <Link to="/admin/donos/$id" params={{ id: o.user_id }} className="block -m-4 p-4 hover:bg-muted/40 transition-colors">
                   <div className="flex items-center gap-3">
                     <div className="h-11 w-11 rounded-full bg-primary text-primary-foreground grid place-items-center font-bold shrink-0">
                       {o.full_name
@@ -192,8 +192,28 @@ function DonosPage() {
                     </div>
                     <ChevronRight className="h-5 w-5 text-muted-foreground shrink-0" />
                   </div>
-                </Card>
-              </Link>
+                </Link>
+                {o.account_status === "pendente" && (
+                  <div className="grid grid-cols-2 gap-2 mt-3 pt-3 border-t">
+                    <Button
+                      variant="outline"
+                      className="h-10 gap-1 text-success border-success/40"
+                      disabled={decide.isPending}
+                      onClick={() => decide.mutate({ userId: o.user_id, next: "ativo" })}
+                    >
+                      <CheckCircle2 className="h-4 w-4" /> Aprovar
+                    </Button>
+                    <Button
+                      variant="outline"
+                      className="h-10 gap-1 text-destructive border-destructive/40"
+                      disabled={decide.isPending}
+                      onClick={() => decide.mutate({ userId: o.user_id, next: "recusado" })}
+                    >
+                      <XCircle className="h-4 w-4" /> Recusar
+                    </Button>
+                  </div>
+                )}
+              </Card>
             ))}
           </div>
         )}
