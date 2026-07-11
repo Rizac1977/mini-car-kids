@@ -68,12 +68,12 @@ function DonosPage() {
       await supabase.from("administrative_logs").insert({
         administrator_id: adminId,
         affected_user_id: userId,
-        action: next === "ativo" ? "Cadastro aprovado" : "Cadastro recusado",
+        action: "Cadastro recusado",
         new_data: { account_status: next },
       });
     },
-    onSuccess: (_r, v) => {
-      toast.success(v.next === "ativo" ? "Dono aprovado" : "Cadastro recusado");
+    onSuccess: () => {
+      toast.success("Cadastro recusado");
       void qc.invalidateQueries({ queryKey: ["admin", "donos"] });
     },
     onError: (e: Error) => toast.error(e.message || "Erro ao atualizar"),
