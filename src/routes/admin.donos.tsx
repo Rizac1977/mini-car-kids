@@ -52,6 +52,7 @@ const filters = [
 function DonosPage() {
   const [filter, setFilter] = useState<(typeof filters)[number]["key"]>("todos");
   const [search, setSearch] = useState("");
+  const [approveTarget, setApproveTarget] = useState<{ userId: string; name: string } | null>(null);
   const qc = useQueryClient();
 
   const decide = useMutation({
