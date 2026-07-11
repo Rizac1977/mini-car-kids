@@ -268,8 +268,12 @@ function DonosPage() {
         ) : (
           <div className="space-y-3">
             {rows.map((o) => (
-              <Card key={o.id} className="p-4">
-                <Link to="/admin/donos/$id" params={{ id: o.user_id }} className="block -m-4 p-4 hover:bg-muted/40 transition-colors">
+              <Card key={o.id} className="overflow-hidden">
+                <Link
+                  to="/admin/donos/$id"
+                  params={{ id: o.user_id }}
+                  className="block p-4 hover:bg-muted/40 transition-colors cursor-pointer"
+                >
                   <div className="flex items-center gap-3">
                     <div className="h-11 w-11 rounded-full bg-primary text-primary-foreground grid place-items-center font-bold shrink-0">
                       {o.full_name
@@ -304,7 +308,7 @@ function DonosPage() {
                   </div>
                 </Link>
                 {o.account_status === "pendente" && (
-                  <div className="grid grid-cols-2 gap-2 mt-3 pt-3 border-t">
+                  <div className="grid grid-cols-2 gap-2 px-4 pb-4 pt-3 border-t">
                     <Button
                       variant="outline"
                       className="h-10 gap-1 text-success border-success/40"
