@@ -57,7 +57,7 @@ function LocacoesPage() {
     queryFn: async () => {
       const { data, error } = await supabase
         .from("rentals")
-        .select("id,vehicle_id,planned_minutes,amount,started_at,planned_end_at,vehicles(name,photo_url)")
+        .select("id,vehicle_id,planned_minutes,amount,started_at,planned_end_at,paused_at,vehicles(name,photo_url)")
 
         .eq("user_id", user!.id)
         .eq("status", "ativa")
