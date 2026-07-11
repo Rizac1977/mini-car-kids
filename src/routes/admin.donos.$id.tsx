@@ -105,7 +105,9 @@ function DonoDetailPage() {
   const { id: userId } = Route.useParams();
   const qc = useQueryClient();
   const [approveOpen, setApproveOpen] = useState(false);
+  const [manageOpen, setManageOpen] = useState(false);
   const [photoUrl, setPhotoUrl] = useState<string | null>(null);
+  const [notes, setNotes] = useState("");
 
   const { data: profile, isLoading } = useQuery({
     queryKey: ["admin", "dono", userId],
@@ -113,7 +115,7 @@ function DonoDetailPage() {
       const { data, error } = await supabase
         .from("profiles")
         .select(
-          "id,user_id,full_name,business_name,phone,city,state,profile_photo_url,account_status,created_at"
+          "id,user_id,full_name,business_name,phone,city,state,profile_photo_url,account_status,admin_notes,created_at"
         )
         .eq("user_id", userId)
         .maybeSingle();
