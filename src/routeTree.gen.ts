@@ -9,10 +9,12 @@
 // Additionally, you should also exclude this file from your linter and/or formatter to prevent it from being checked or modified.
 
 import { Route as rootRouteImport } from './routes/__root'
+import { Route as RedefinirSenhaRouteImport } from './routes/redefinir-senha'
 import { Route as RecuperarSenhaRouteImport } from './routes/recuperar-senha'
 import { Route as LoginRouteImport } from './routes/login'
 import { Route as CadastroRouteImport } from './routes/cadastro'
 import { Route as AppRouteImport } from './routes/app'
+import { Route as AguardandoAprovacaoRouteImport } from './routes/aguardando-aprovacao'
 import { Route as AdminRouteImport } from './routes/admin'
 import { Route as IndexRouteImport } from './routes/index'
 import { Route as AppIndexRouteImport } from './routes/app.index'
@@ -29,6 +31,11 @@ import { Route as AppVeiculosNovoRouteImport } from './routes/app.veiculos.novo'
 import { Route as AppLocacoesNovaRouteImport } from './routes/app.locacoes.nova'
 import { Route as AdminDonosIdRouteImport } from './routes/admin.donos.$id'
 
+const RedefinirSenhaRoute = RedefinirSenhaRouteImport.update({
+  id: '/redefinir-senha',
+  path: '/redefinir-senha',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const RecuperarSenhaRoute = RecuperarSenhaRouteImport.update({
   id: '/recuperar-senha',
   path: '/recuperar-senha',
@@ -47,6 +54,11 @@ const CadastroRoute = CadastroRouteImport.update({
 const AppRoute = AppRouteImport.update({
   id: '/app',
   path: '/app',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const AguardandoAprovacaoRoute = AguardandoAprovacaoRouteImport.update({
+  id: '/aguardando-aprovacao',
+  path: '/aguardando-aprovacao',
   getParentRoute: () => rootRouteImport,
 } as any)
 const AdminRoute = AdminRouteImport.update({
@@ -128,10 +140,12 @@ const AdminDonosIdRoute = AdminDonosIdRouteImport.update({
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
   '/admin': typeof AdminRouteWithChildren
+  '/aguardando-aprovacao': typeof AguardandoAprovacaoRoute
   '/app': typeof AppRouteWithChildren
   '/cadastro': typeof CadastroRoute
   '/login': typeof LoginRoute
   '/recuperar-senha': typeof RecuperarSenhaRoute
+  '/redefinir-senha': typeof RedefinirSenhaRoute
   '/admin/donos': typeof AdminDonosRouteWithChildren
   '/app/assinatura': typeof AppAssinaturaRoute
   '/app/historico': typeof AppHistoricoRoute
@@ -148,9 +162,11 @@ export interface FileRoutesByFullPath {
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
+  '/aguardando-aprovacao': typeof AguardandoAprovacaoRoute
   '/cadastro': typeof CadastroRoute
   '/login': typeof LoginRoute
   '/recuperar-senha': typeof RecuperarSenhaRoute
+  '/redefinir-senha': typeof RedefinirSenhaRoute
   '/admin/donos': typeof AdminDonosRouteWithChildren
   '/app/assinatura': typeof AppAssinaturaRoute
   '/app/historico': typeof AppHistoricoRoute
@@ -169,10 +185,12 @@ export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
   '/admin': typeof AdminRouteWithChildren
+  '/aguardando-aprovacao': typeof AguardandoAprovacaoRoute
   '/app': typeof AppRouteWithChildren
   '/cadastro': typeof CadastroRoute
   '/login': typeof LoginRoute
   '/recuperar-senha': typeof RecuperarSenhaRoute
+  '/redefinir-senha': typeof RedefinirSenhaRoute
   '/admin/donos': typeof AdminDonosRouteWithChildren
   '/app/assinatura': typeof AppAssinaturaRoute
   '/app/historico': typeof AppHistoricoRoute
@@ -192,10 +210,12 @@ export interface FileRouteTypes {
   fullPaths:
     | '/'
     | '/admin'
+    | '/aguardando-aprovacao'
     | '/app'
     | '/cadastro'
     | '/login'
     | '/recuperar-senha'
+    | '/redefinir-senha'
     | '/admin/donos'
     | '/app/assinatura'
     | '/app/historico'
@@ -212,9 +232,11 @@ export interface FileRouteTypes {
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/'
+    | '/aguardando-aprovacao'
     | '/cadastro'
     | '/login'
     | '/recuperar-senha'
+    | '/redefinir-senha'
     | '/admin/donos'
     | '/app/assinatura'
     | '/app/historico'
@@ -232,10 +254,12 @@ export interface FileRouteTypes {
     | '__root__'
     | '/'
     | '/admin'
+    | '/aguardando-aprovacao'
     | '/app'
     | '/cadastro'
     | '/login'
     | '/recuperar-senha'
+    | '/redefinir-senha'
     | '/admin/donos'
     | '/app/assinatura'
     | '/app/historico'
@@ -254,14 +278,23 @@ export interface FileRouteTypes {
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
   AdminRoute: typeof AdminRouteWithChildren
+  AguardandoAprovacaoRoute: typeof AguardandoAprovacaoRoute
   AppRoute: typeof AppRouteWithChildren
   CadastroRoute: typeof CadastroRoute
   LoginRoute: typeof LoginRoute
   RecuperarSenhaRoute: typeof RecuperarSenhaRoute
+  RedefinirSenhaRoute: typeof RedefinirSenhaRoute
 }
 
 declare module '@tanstack/react-router' {
   interface FileRoutesByPath {
+    '/redefinir-senha': {
+      id: '/redefinir-senha'
+      path: '/redefinir-senha'
+      fullPath: '/redefinir-senha'
+      preLoaderRoute: typeof RedefinirSenhaRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/recuperar-senha': {
       id: '/recuperar-senha'
       path: '/recuperar-senha'
@@ -288,6 +321,13 @@ declare module '@tanstack/react-router' {
       path: '/app'
       fullPath: '/app'
       preLoaderRoute: typeof AppRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/aguardando-aprovacao': {
+      id: '/aguardando-aprovacao'
+      path: '/aguardando-aprovacao'
+      fullPath: '/aguardando-aprovacao'
+      preLoaderRoute: typeof AguardandoAprovacaoRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/admin': {
@@ -473,10 +513,12 @@ const AppRouteWithChildren = AppRoute._addFileChildren(AppRouteChildren)
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
   AdminRoute: AdminRouteWithChildren,
+  AguardandoAprovacaoRoute: AguardandoAprovacaoRoute,
   AppRoute: AppRouteWithChildren,
   CadastroRoute: CadastroRoute,
   LoginRoute: LoginRoute,
   RecuperarSenhaRoute: RecuperarSenhaRoute,
+  RedefinirSenhaRoute: RedefinirSenhaRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)

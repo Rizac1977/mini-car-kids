@@ -52,11 +52,17 @@ function PerfilPage() {
 
         <Button variant="outline" className="w-full h-12">Editar perfil</Button>
 
-        <Link to="/login">
-          <Button variant="ghost" className="w-full h-12 gap-2 text-destructive hover:text-destructive">
-            <LogOut className="h-4 w-4" /> Sair da conta
-          </Button>
-        </Link>
+        <Button
+          variant="ghost"
+          className="w-full h-12 gap-2 text-destructive hover:text-destructive"
+          onClick={async () => {
+            const { signOut } = await import("@/hooks/use-auth");
+            await signOut();
+            window.location.href = "/login";
+          }}
+        >
+          <LogOut className="h-4 w-4" /> Sair da conta
+        </Button>
       </div>
     </AppShell>
   );
