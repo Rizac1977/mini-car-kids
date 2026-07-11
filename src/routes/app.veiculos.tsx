@@ -297,7 +297,7 @@ function VehicleCard({
   onEdit: () => void;
   onDelete: () => void;
 }) {
-  const meta = statusMeta[v.status];
+  const meta = statusMeta[v.status] ?? statusMeta.inativo;
   const photo = usePhotoUrl(v.photo_url);
   return (
     <Card className="p-4">
@@ -338,6 +338,7 @@ function VehicleCard({
     </Card>
   );
 }
+
 
 function VehicleForm({
   form, setForm,
