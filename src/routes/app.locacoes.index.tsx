@@ -104,6 +104,32 @@ function LocacoesPage() {
     onError: (e: Error) => toast.error(e.message),
   });
 
+  const togglePause = useMutation({
+    mutationFn: async (r: ActiveRental) => {
+      if (r.paused_at) {
+        // retomar: estender planned_end_at pelo tempo em pausa
+        const pausedMs = Date.now() - new Date(r.paused_at).getTime();
+        const newEnd = new Date(new Date(r.planned_end_at).getTime() + pausedMs);
+        const { error } = await supabase
+          .from("rentals")
+          .update({ paused_at: null, planned_end_at: newEnd.toISOString() })
+          .eq("id", r.id);
+        if (error) throw error;
+      } else {
+        const { error } = await supabase
+          .from("rentals")
+          .update({ paused_at: new Date().toISOString() })
+          .eq("id", r.id);
+        if (error) throw error;
+      }
+    },
+    onSuccess: (_d, r) => {
+      toast.success(r.paused_at ? "Locação retomada" : "Locação pausada");
+      qc.invalidateQueries({ queryKey: ["rentals-ativas"] });
+    },
+    onError: (e: Error) => toast.error(e.message),
+  });
+
   return (
     <AppShell title="Locações ativas">
       <div className="mb-4">
