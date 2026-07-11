@@ -6,7 +6,6 @@ import {
   PlusCircle,
   History,
   User,
-  MapPin,
   BarChart3,
   CreditCard,
   Timer,
@@ -27,12 +26,12 @@ const sideNav = [
   { to: "/app/locacoes", label: "Locações ativas", icon: Timer },
   { to: "/app/locacoes/nova", label: "Nova locação", icon: PlusCircle },
   { to: "/app/veiculos", label: "Veículos", icon: Car },
-  { to: "/app/locais", label: "Locais", icon: MapPin },
   { to: "/app/historico", label: "Histórico", icon: History },
   { to: "/app/relatorios", label: "Relatórios", icon: BarChart3 },
   { to: "/app/assinatura", label: "Assinatura", icon: CreditCard },
   { to: "/app/perfil", label: "Perfil", icon: User },
 ];
+
 
 export function AppShell({ children, title }: { children: ReactNode; title?: string }) {
   const pathname = useRouterState({ select: (s) => s.location.pathname });

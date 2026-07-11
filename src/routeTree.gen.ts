@@ -22,7 +22,6 @@ import { Route as AdminIndexRouteImport } from './routes/admin.index'
 import { Route as AppVeiculosRouteImport } from './routes/app.veiculos'
 import { Route as AppRelatoriosRouteImport } from './routes/app.relatorios'
 import { Route as AppPerfilRouteImport } from './routes/app.perfil'
-import { Route as AppLocaisRouteImport } from './routes/app.locais'
 import { Route as AppLocacoesRouteImport } from './routes/app.locacoes'
 import { Route as AppHistoricoRouteImport } from './routes/app.historico'
 import { Route as AppAssinaturaRouteImport } from './routes/app.assinatura'
@@ -96,11 +95,6 @@ const AppPerfilRoute = AppPerfilRouteImport.update({
   path: '/perfil',
   getParentRoute: () => AppRoute,
 } as any)
-const AppLocaisRoute = AppLocaisRouteImport.update({
-  id: '/locais',
-  path: '/locais',
-  getParentRoute: () => AppRoute,
-} as any)
 const AppLocacoesRoute = AppLocacoesRouteImport.update({
   id: '/locacoes',
   path: '/locacoes',
@@ -150,7 +144,6 @@ export interface FileRoutesByFullPath {
   '/app/assinatura': typeof AppAssinaturaRoute
   '/app/historico': typeof AppHistoricoRoute
   '/app/locacoes': typeof AppLocacoesRouteWithChildren
-  '/app/locais': typeof AppLocaisRoute
   '/app/perfil': typeof AppPerfilRoute
   '/app/relatorios': typeof AppRelatoriosRoute
   '/app/veiculos': typeof AppVeiculosRoute
@@ -170,7 +163,6 @@ export interface FileRoutesByTo {
   '/admin/donos': typeof AdminDonosRouteWithChildren
   '/app/assinatura': typeof AppAssinaturaRoute
   '/app/historico': typeof AppHistoricoRoute
-  '/app/locais': typeof AppLocaisRoute
   '/app/perfil': typeof AppPerfilRoute
   '/app/relatorios': typeof AppRelatoriosRoute
   '/app/veiculos': typeof AppVeiculosRoute
@@ -194,7 +186,6 @@ export interface FileRoutesById {
   '/app/assinatura': typeof AppAssinaturaRoute
   '/app/historico': typeof AppHistoricoRoute
   '/app/locacoes': typeof AppLocacoesRouteWithChildren
-  '/app/locais': typeof AppLocaisRoute
   '/app/perfil': typeof AppPerfilRoute
   '/app/relatorios': typeof AppRelatoriosRoute
   '/app/veiculos': typeof AppVeiculosRoute
@@ -219,7 +210,6 @@ export interface FileRouteTypes {
     | '/app/assinatura'
     | '/app/historico'
     | '/app/locacoes'
-    | '/app/locais'
     | '/app/perfil'
     | '/app/relatorios'
     | '/app/veiculos'
@@ -239,7 +229,6 @@ export interface FileRouteTypes {
     | '/admin/donos'
     | '/app/assinatura'
     | '/app/historico'
-    | '/app/locais'
     | '/app/perfil'
     | '/app/relatorios'
     | '/app/veiculos'
@@ -262,7 +251,6 @@ export interface FileRouteTypes {
     | '/app/assinatura'
     | '/app/historico'
     | '/app/locacoes'
-    | '/app/locais'
     | '/app/perfil'
     | '/app/relatorios'
     | '/app/veiculos'
@@ -377,13 +365,6 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AppPerfilRouteImport
       parentRoute: typeof AppRoute
     }
-    '/app/locais': {
-      id: '/app/locais'
-      path: '/locais'
-      fullPath: '/app/locais'
-      preLoaderRoute: typeof AppLocaisRouteImport
-      parentRoute: typeof AppRoute
-    }
     '/app/locacoes': {
       id: '/app/locacoes'
       path: '/locacoes'
@@ -478,7 +459,6 @@ interface AppRouteChildren {
   AppAssinaturaRoute: typeof AppAssinaturaRoute
   AppHistoricoRoute: typeof AppHistoricoRoute
   AppLocacoesRoute: typeof AppLocacoesRouteWithChildren
-  AppLocaisRoute: typeof AppLocaisRoute
   AppPerfilRoute: typeof AppPerfilRoute
   AppRelatoriosRoute: typeof AppRelatoriosRoute
   AppVeiculosRoute: typeof AppVeiculosRoute
@@ -489,7 +469,6 @@ const AppRouteChildren: AppRouteChildren = {
   AppAssinaturaRoute: AppAssinaturaRoute,
   AppHistoricoRoute: AppHistoricoRoute,
   AppLocacoesRoute: AppLocacoesRouteWithChildren,
-  AppLocaisRoute: AppLocaisRoute,
   AppPerfilRoute: AppPerfilRoute,
   AppRelatoriosRoute: AppRelatoriosRoute,
   AppVeiculosRoute: AppVeiculosRoute,
@@ -511,13 +490,3 @@ const rootRouteChildren: RootRouteChildren = {
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
   ._addFileTypes<FileRouteTypes>()
-
-import type { getRouter } from './router.tsx'
-import type { startInstance } from './start.ts'
-declare module '@tanstack/react-start' {
-  interface Register {
-    ssr: true
-    router: Awaited<ReturnType<typeof getRouter>>
-    config: Awaited<ReturnType<typeof startInstance.getOptions>>
-  }
-}

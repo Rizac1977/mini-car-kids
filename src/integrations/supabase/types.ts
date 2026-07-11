@@ -44,45 +44,6 @@ export type Database = {
         }
         Relationships: []
       }
-      locations: {
-        Row: {
-          address: string | null
-          city: string | null
-          created_at: string
-          id: string
-          is_active: boolean
-          name: string
-          notes: string | null
-          state: string | null
-          updated_at: string
-          user_id: string
-        }
-        Insert: {
-          address?: string | null
-          city?: string | null
-          created_at?: string
-          id?: string
-          is_active?: boolean
-          name: string
-          notes?: string | null
-          state?: string | null
-          updated_at?: string
-          user_id: string
-        }
-        Update: {
-          address?: string | null
-          city?: string | null
-          created_at?: string
-          id?: string
-          is_active?: boolean
-          name?: string
-          notes?: string | null
-          state?: string | null
-          updated_at?: string
-          user_id?: string
-        }
-        Relationships: []
-      }
       profiles: {
         Row: {
           account_status: Database["public"]["Enums"]["account_status"]
@@ -131,7 +92,6 @@ export type Database = {
           created_at: string
           ended_at: string | null
           id: string
-          location_id: string
           notes: string | null
           planned_end_at: string
           planned_minutes: number
@@ -146,7 +106,6 @@ export type Database = {
           created_at?: string
           ended_at?: string | null
           id?: string
-          location_id: string
           notes?: string | null
           planned_end_at: string
           planned_minutes: number
@@ -161,7 +120,6 @@ export type Database = {
           created_at?: string
           ended_at?: string | null
           id?: string
-          location_id?: string
           notes?: string | null
           planned_end_at?: string
           planned_minutes?: number
@@ -172,13 +130,6 @@ export type Database = {
           vehicle_id?: string
         }
         Relationships: [
-          {
-            foreignKeyName: "rentals_location_id_fkey"
-            columns: ["location_id"]
-            isOneToOne: false
-            referencedRelation: "locations"
-            referencedColumns: ["id"]
-          },
           {
             foreignKeyName: "rentals_vehicle_id_fkey"
             columns: ["vehicle_id"]
@@ -252,7 +203,6 @@ export type Database = {
           color: string | null
           created_at: string
           id: string
-          location_id: string | null
           model: string | null
           name: string
           notes: string | null
@@ -269,7 +219,6 @@ export type Database = {
           color?: string | null
           created_at?: string
           id?: string
-          location_id?: string | null
           model?: string | null
           name: string
           notes?: string | null
@@ -286,7 +235,6 @@ export type Database = {
           color?: string | null
           created_at?: string
           id?: string
-          location_id?: string | null
           model?: string | null
           name?: string
           notes?: string | null
@@ -297,15 +245,7 @@ export type Database = {
           updated_at?: string
           user_id?: string
         }
-        Relationships: [
-          {
-            foreignKeyName: "vehicles_location_id_fkey"
-            columns: ["location_id"]
-            isOneToOne: false
-            referencedRelation: "locations"
-            referencedColumns: ["id"]
-          },
-        ]
+        Relationships: []
       }
     }
     Views: {
