@@ -94,20 +94,14 @@ function NovaLocacaoPage() {
           ) : (
             <div className="grid grid-cols-2 gap-3">
               {availableVehicles.map((v) => (
-                <button
+                <VehicleTile
                   key={v.id}
-                  onClick={() => setVehicleId(v.id)}
-                  className={`p-3 rounded-xl border-2 flex flex-col items-center text-center transition-all ${
-                    vehicleId === v.id ? "border-primary bg-primary-soft" : "border-border bg-card"
-                  }`}
-                >
-                  {v.photo_url ? (
-                    <img src={v.photo_url} alt={v.name} className="h-16 w-16 rounded-lg object-cover mb-1" />
-                  ) : (
-                    <div className="h-16 w-16 rounded-lg bg-muted grid place-items-center text-3xl mb-1">🚗</div>
-                  )}
-                  <div className="text-sm font-semibold truncate w-full">{v.name}</div>
-                </button>
+                  id={v.id}
+                  name={v.name}
+                  photoPath={v.photo_url}
+                  selected={vehicleId === v.id}
+                  onSelect={() => setVehicleId(v.id)}
+                />
               ))}
             </div>
           )}
