@@ -201,7 +201,7 @@ function DonosPage() {
                       variant="outline"
                       className="h-10 gap-1 text-success border-success/40"
                       disabled={decide.isPending}
-                      onClick={() => decide.mutate({ userId: o.user_id, next: "ativo" })}
+                      onClick={() => setApproveTarget({ userId: o.user_id, name: o.full_name })}
                     >
                       <CheckCircle2 className="h-4 w-4" /> Aprovar
                     </Button>
@@ -220,6 +220,13 @@ function DonosPage() {
           </div>
         )}
       </div>
+
+      <ApproveOwnerDialog
+        open={!!approveTarget}
+        onOpenChange={(v) => !v && setApproveTarget(null)}
+        userId={approveTarget?.userId ?? ""}
+        ownerName={approveTarget?.name}
+      />
     </AdminShell>
   );
 }
