@@ -5,6 +5,7 @@ import { toast } from "sonner";
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
+import { Textarea } from "@/components/ui/textarea";
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
 import {
   ArrowLeft,
@@ -21,12 +22,16 @@ import {
   Calendar,
   Mail,
   User as UserIcon,
+  Settings,
+  Save,
+  BarChart3,
 } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { dateBR, currency } from "@/lib/mock-data";
 import type { AccountStatus } from "@/hooks/use-auth";
 import { AdminShell } from "./admin.index";
 import { ApproveOwnerDialog } from "@/components/approve-owner-dialog";
+import { ManageSubscriptionDialog } from "@/components/manage-subscription-dialog";
 
 export const Route = createFileRoute("/admin/donos/$id")({
   head: () => ({
