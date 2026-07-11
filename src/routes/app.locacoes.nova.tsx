@@ -9,6 +9,7 @@ import { useAuth } from "@/hooks/use-auth";
 import { supabase } from "@/integrations/supabase/client";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
+import { useVehiclePhotoUrl } from "@/hooks/use-vehicle-photo";
 
 const packages = [
   { id: "p1", minutes: 5, price: 8 },
