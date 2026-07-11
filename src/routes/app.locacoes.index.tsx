@@ -167,11 +167,8 @@ function LocacoesPage() {
                 }`}
               >
                 <div className="flex gap-3">
-                  {r.vehicles?.photo_url ? (
-                    <img src={r.vehicles.photo_url} alt={r.vehicles.name} className="h-16 w-16 rounded-xl object-cover shrink-0" />
-                  ) : (
-                    <div className="h-16 w-16 rounded-xl bg-muted grid place-items-center text-3xl shrink-0">🚗</div>
-                  )}
+                  <VehiclePhoto path={r.vehicles?.photo_url ?? null} name={r.vehicles?.name ?? "Veículo"} size="h-16 w-16 rounded-xl" />
+
                   <div className="flex-1 min-w-0">
                     <div className="font-bold truncate">{r.vehicles?.name ?? "Veículo"}</div>
                     <div className="mt-0.5 text-xs text-muted-foreground flex items-center gap-1">
