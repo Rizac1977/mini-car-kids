@@ -102,16 +102,27 @@ function AguardandoPage() {
             <h1 className="text-xl font-bold">{m.title}</h1>
             <p className="text-sm text-muted-foreground mt-2">{m.body}</p>
           </div>
+          {debug && (
+            <p className="text-[10px] text-muted-foreground break-all">{debug}</p>
+          )}
+          <Button
+            className="w-full h-12 gap-2"
+            onClick={() => void check()}
+            disabled={checking}
+          >
+            {checking ? "Verificando..." : "Verificar novamente"}
+          </Button>
           <Button
             variant="outline"
             className="w-full h-12 gap-2"
             onClick={async () => {
               await signOut();
-              navigate({ to: "/login" });
+              window.location.href = "/login";
             }}
           >
             <LogOut className="h-4 w-4" /> Sair
           </Button>
+
         </Card>
       </div>
     </div>
