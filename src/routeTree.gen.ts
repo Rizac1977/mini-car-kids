@@ -27,7 +27,6 @@ import { Route as AppLocacoesRouteImport } from './routes/app.locacoes'
 import { Route as AppHistoricoRouteImport } from './routes/app.historico'
 import { Route as AppAssinaturaRouteImport } from './routes/app.assinatura'
 import { Route as AdminDonosRouteImport } from './routes/admin.donos'
-import { Route as AppVeiculosNovoRouteImport } from './routes/app.veiculos.novo'
 import { Route as AppLocacoesNovaRouteImport } from './routes/app.locacoes.nova'
 import { Route as AdminDonosIdRouteImport } from './routes/admin.donos.$id'
 
@@ -121,11 +120,6 @@ const AdminDonosRoute = AdminDonosRouteImport.update({
   path: '/donos',
   getParentRoute: () => AdminRoute,
 } as any)
-const AppVeiculosNovoRoute = AppVeiculosNovoRouteImport.update({
-  id: '/novo',
-  path: '/novo',
-  getParentRoute: () => AppVeiculosRoute,
-} as any)
 const AppLocacoesNovaRoute = AppLocacoesNovaRouteImport.update({
   id: '/nova',
   path: '/nova',
@@ -153,12 +147,11 @@ export interface FileRoutesByFullPath {
   '/app/locais': typeof AppLocaisRoute
   '/app/perfil': typeof AppPerfilRoute
   '/app/relatorios': typeof AppRelatoriosRoute
-  '/app/veiculos': typeof AppVeiculosRouteWithChildren
+  '/app/veiculos': typeof AppVeiculosRoute
   '/admin/': typeof AdminIndexRoute
   '/app/': typeof AppIndexRoute
   '/admin/donos/$id': typeof AdminDonosIdRoute
   '/app/locacoes/nova': typeof AppLocacoesNovaRoute
-  '/app/veiculos/novo': typeof AppVeiculosNovoRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
@@ -174,12 +167,11 @@ export interface FileRoutesByTo {
   '/app/locais': typeof AppLocaisRoute
   '/app/perfil': typeof AppPerfilRoute
   '/app/relatorios': typeof AppRelatoriosRoute
-  '/app/veiculos': typeof AppVeiculosRouteWithChildren
+  '/app/veiculos': typeof AppVeiculosRoute
   '/admin': typeof AdminIndexRoute
   '/app': typeof AppIndexRoute
   '/admin/donos/$id': typeof AdminDonosIdRoute
   '/app/locacoes/nova': typeof AppLocacoesNovaRoute
-  '/app/veiculos/novo': typeof AppVeiculosNovoRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
@@ -198,12 +190,11 @@ export interface FileRoutesById {
   '/app/locais': typeof AppLocaisRoute
   '/app/perfil': typeof AppPerfilRoute
   '/app/relatorios': typeof AppRelatoriosRoute
-  '/app/veiculos': typeof AppVeiculosRouteWithChildren
+  '/app/veiculos': typeof AppVeiculosRoute
   '/admin/': typeof AdminIndexRoute
   '/app/': typeof AppIndexRoute
   '/admin/donos/$id': typeof AdminDonosIdRoute
   '/app/locacoes/nova': typeof AppLocacoesNovaRoute
-  '/app/veiculos/novo': typeof AppVeiculosNovoRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
@@ -228,7 +219,6 @@ export interface FileRouteTypes {
     | '/app/'
     | '/admin/donos/$id'
     | '/app/locacoes/nova'
-    | '/app/veiculos/novo'
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/'
@@ -249,7 +239,6 @@ export interface FileRouteTypes {
     | '/app'
     | '/admin/donos/$id'
     | '/app/locacoes/nova'
-    | '/app/veiculos/novo'
   id:
     | '__root__'
     | '/'
@@ -272,7 +261,6 @@ export interface FileRouteTypes {
     | '/app/'
     | '/admin/donos/$id'
     | '/app/locacoes/nova'
-    | '/app/veiculos/novo'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
@@ -414,13 +402,6 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AdminDonosRouteImport
       parentRoute: typeof AdminRoute
     }
-    '/app/veiculos/novo': {
-      id: '/app/veiculos/novo'
-      path: '/novo'
-      fullPath: '/app/veiculos/novo'
-      preLoaderRoute: typeof AppVeiculosNovoRouteImport
-      parentRoute: typeof AppVeiculosRoute
-    }
     '/app/locacoes/nova': {
       id: '/app/locacoes/nova'
       path: '/nova'
@@ -474,18 +455,6 @@ const AppLocacoesRouteWithChildren = AppLocacoesRoute._addFileChildren(
   AppLocacoesRouteChildren,
 )
 
-interface AppVeiculosRouteChildren {
-  AppVeiculosNovoRoute: typeof AppVeiculosNovoRoute
-}
-
-const AppVeiculosRouteChildren: AppVeiculosRouteChildren = {
-  AppVeiculosNovoRoute: AppVeiculosNovoRoute,
-}
-
-const AppVeiculosRouteWithChildren = AppVeiculosRoute._addFileChildren(
-  AppVeiculosRouteChildren,
-)
-
 interface AppRouteChildren {
   AppAssinaturaRoute: typeof AppAssinaturaRoute
   AppHistoricoRoute: typeof AppHistoricoRoute
@@ -493,7 +462,7 @@ interface AppRouteChildren {
   AppLocaisRoute: typeof AppLocaisRoute
   AppPerfilRoute: typeof AppPerfilRoute
   AppRelatoriosRoute: typeof AppRelatoriosRoute
-  AppVeiculosRoute: typeof AppVeiculosRouteWithChildren
+  AppVeiculosRoute: typeof AppVeiculosRoute
   AppIndexRoute: typeof AppIndexRoute
 }
 
@@ -504,7 +473,7 @@ const AppRouteChildren: AppRouteChildren = {
   AppLocaisRoute: AppLocaisRoute,
   AppPerfilRoute: AppPerfilRoute,
   AppRelatoriosRoute: AppRelatoriosRoute,
-  AppVeiculosRoute: AppVeiculosRouteWithChildren,
+  AppVeiculosRoute: AppVeiculosRoute,
   AppIndexRoute: AppIndexRoute,
 }
 
