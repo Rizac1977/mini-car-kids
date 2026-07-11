@@ -67,7 +67,7 @@ export function ManageSubscriptionDialog({ open, onOpenChange, userId, current }
       const endIso = new Date(endDate + "T23:59:59").toISOString();
       const payload = {
         plan,
-        status,
+        status: status as SubStatus,
         current_period_end: endIso,
       };
 
