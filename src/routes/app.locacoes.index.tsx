@@ -4,7 +4,7 @@ import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Progress } from "@/components/ui/progress";
 import { currency, timeBR } from "@/lib/mock-data";
-import { RefreshCw, Square, Clock, Plus, Loader2 } from "lucide-react";
+import { RefreshCw, Square, Clock, Plus, Loader2, Pause, Play } from "lucide-react";
 import { useEffect, useState } from "react";
 import { useAuth } from "@/hooks/use-auth";
 import { supabase } from "@/integrations/supabase/client";
@@ -18,8 +18,16 @@ type ActiveRental = {
   amount: number;
   started_at: string;
   planned_end_at: string;
+  paused_at: string | null;
   vehicles: { name: string; photo_url: string | null } | null;
 };
+
+function fmtCountdown(ms: number) {
+  const s = Math.max(0, Math.ceil(ms / 1000));
+  const m = Math.floor(s / 60);
+  const r = s % 60;
+  return `${String(m).padStart(2, "0")}:${String(r).padStart(2, "0")}`;
+}
 
 
 export const Route = createFileRoute("/app/locacoes/")({
@@ -49,7 +57,7 @@ function LocacoesPage() {
     queryFn: async () => {
       const { data, error } = await supabase
         .from("rentals")
-        .select("id,vehicle_id,planned_minutes,amount,started_at,planned_end_at,vehicles(name,photo_url)")
+        .select("id,vehicle_id,planned_minutes,amount,started_at,planned_end_at,paused_at,vehicles(name,photo_url)")
 
         .eq("user_id", user!.id)
         .eq("status", "ativa")
@@ -96,6 +104,32 @@ function LocacoesPage() {
     onError: (e: Error) => toast.error(e.message),
   });
 
+  const togglePause = useMutation({
+    mutationFn: async (r: ActiveRental) => {
+      if (r.paused_at) {
+        // retomar: estender planned_end_at pelo tempo em pausa
+        const pausedMs = Date.now() - new Date(r.paused_at).getTime();
+        const newEnd = new Date(new Date(r.planned_end_at).getTime() + pausedMs);
+        const { error } = await supabase
+          .from("rentals")
+          .update({ paused_at: null, planned_end_at: newEnd.toISOString() })
+          .eq("id", r.id);
+        if (error) throw error;
+      } else {
+        const { error } = await supabase
+          .from("rentals")
+          .update({ paused_at: new Date().toISOString() })
+          .eq("id", r.id);
+        if (error) throw error;
+      }
+    },
+    onSuccess: (_d, r) => {
+      toast.success(r.paused_at ? "Locação retomada" : "Locação pausada");
+      qc.invalidateQueries({ queryKey: ["rentals-ativas"] });
+    },
+    onError: (e: Error) => toast.error(e.message),
+  });
+
   return (
     <AppShell title="Locações ativas">
       <div className="mb-4">
@@ -115,16 +149,19 @@ function LocacoesPage() {
           {rentals.map((r) => {
             const start = new Date(r.started_at).getTime();
             const end = new Date(r.planned_end_at).getTime();
-            const total = (end - start) / 60000;
-            const remaining = Math.max(0, (end - Date.now()) / 60000);
-            const pct = Math.max(0, Math.min(100, (remaining / total) * 100));
-            const urgent = remaining <= 1;
-            const warning = remaining <= 2 && !urgent;
+            const totalMs = end - start;
+            const isPaused = !!r.paused_at;
+            const nowRef = isPaused ? new Date(r.paused_at!).getTime() : Date.now();
+            const remainingMs = Math.max(0, end - nowRef);
+            const pct = Math.max(0, Math.min(100, (remainingMs / totalMs) * 100));
+            const urgent = !isPaused && remainingMs <= 60_000;
+            const warning = !isPaused && remainingMs <= 120_000 && !urgent;
             return (
               <Card
                 key={r.id}
                 className={`p-4 ${
-                  urgent ? "border-destructive border-2 bg-destructive/5"
+                  isPaused ? "border-muted-foreground/30 border-2 bg-muted/30"
+                  : urgent ? "border-destructive border-2 bg-destructive/5"
                   : warning ? "border-warning border-2 bg-warning/5" : ""
                 }`}
               >
@@ -137,29 +174,44 @@ function LocacoesPage() {
                   <div className="flex-1 min-w-0">
                     <div className="font-bold truncate">{r.vehicles?.name ?? "Veículo"}</div>
                     <div className="mt-0.5 text-xs text-muted-foreground flex items-center gap-1">
-
                       <Clock className="h-3 w-3" /> {timeBR(r.started_at)} → {timeBR(r.planned_end_at)}
                     </div>
+                    {isPaused && (
+                      <div className="mt-1 inline-flex items-center gap-1 rounded-full bg-muted px-2 py-0.5 text-[11px] font-semibold text-muted-foreground">
+                        <Pause className="h-3 w-3" /> Pausada
+                      </div>
+                    )}
                   </div>
                 </div>
 
                 <div className="mt-4">
                   <div className="flex justify-between items-baseline mb-1.5">
-                    <span className={`text-2xl font-bold ${
-                      urgent ? "text-destructive" : warning ? "text-warning-foreground" : "text-primary"
+                    <span className={`text-3xl font-bold tabular-nums ${
+                      isPaused ? "text-muted-foreground"
+                      : urgent ? "text-destructive"
+                      : warning ? "text-warning-foreground"
+                      : "text-primary"
                     }`}>
-                      {remaining > 0 ? `${Math.ceil(remaining)} min` : "Encerrado"}
+                      {remainingMs > 0 ? fmtCountdown(remainingMs) : "Encerrado"}
                     </span>
                     <span className="text-sm font-semibold">{currency(Number(r.amount))}</span>
                   </div>
                   <Progress value={pct} className="h-2.5" />
                 </div>
 
-                <div className="mt-4 grid grid-cols-2 gap-2">
+                <div className="mt-4 grid grid-cols-3 gap-2">
                   <Button
                     variant="outline"
                     className="h-11 gap-1.5"
-                    disabled={renew.isPending}
+                    disabled={togglePause.isPending}
+                    onClick={() => togglePause.mutate(r)}
+                  >
+                    {isPaused ? <><Play className="h-4 w-4" /> Retomar</> : <><Pause className="h-4 w-4" /> Pausar</>}
+                  </Button>
+                  <Button
+                    variant="outline"
+                    className="h-11 gap-1.5"
+                    disabled={renew.isPending || isPaused}
                     onClick={() => renew.mutate(r)}
                   >
                     <RefreshCw className="h-4 w-4" /> Renovar

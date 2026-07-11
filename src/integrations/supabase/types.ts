@@ -93,6 +93,7 @@ export type Database = {
           ended_at: string | null
           id: string
           notes: string | null
+          paused_at: string | null
           planned_end_at: string
           planned_minutes: number
           started_at: string
@@ -107,6 +108,7 @@ export type Database = {
           ended_at?: string | null
           id?: string
           notes?: string | null
+          paused_at?: string | null
           planned_end_at: string
           planned_minutes: number
           started_at?: string
@@ -121,6 +123,7 @@ export type Database = {
           ended_at?: string | null
           id?: string
           notes?: string | null
+          paused_at?: string | null
           planned_end_at?: string
           planned_minutes?: number
           started_at?: string
