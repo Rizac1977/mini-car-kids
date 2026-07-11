@@ -90,11 +90,22 @@ export function AppShell({ children, title }: { children: ReactNode; title?: str
       {/* Conteúdo */}
       <div className="lg:pl-64">
         <header className="sticky top-0 z-30 bg-background/90 backdrop-blur border-b px-4 py-3 lg:px-8 lg:py-4">
-          <div className="flex items-center justify-between">
-            <div>
+          <div className="flex items-center justify-between gap-2">
+            <div className="min-w-0">
               <div className="text-xs text-muted-foreground lg:hidden">MiniCar Gestão</div>
-              <h1 className="text-lg lg:text-2xl font-bold tracking-tight">{title}</h1>
+              <h1 className="text-lg lg:text-2xl font-bold tracking-tight truncate">{title}</h1>
             </div>
+            <button
+              onClick={async () => {
+                const { signOut } = await import("@/hooks/use-auth");
+                await signOut();
+                window.location.href = "/login";
+              }}
+              className="lg:hidden inline-flex items-center gap-1 text-sm text-muted-foreground hover:text-foreground shrink-0"
+              aria-label="Sair"
+            >
+              <LogOut className="h-4 w-4" /> Sair
+            </button>
           </div>
         </header>
         <main className="px-4 lg:px-8 pt-4 pb-28 lg:pb-10 max-w-6xl mx-auto">{children}</main>
