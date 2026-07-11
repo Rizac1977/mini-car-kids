@@ -59,6 +59,7 @@ type Profile = {
   state: string | null;
   profile_photo_url: string | null;
   account_status: AccountStatus;
+  admin_notes: string | null;
   created_at: string;
 };
 
