@@ -7,6 +7,7 @@ import { useAuth } from "@/hooks/use-auth";
 import { supabase } from "@/integrations/supabase/client";
 import { useQuery } from "@tanstack/react-query";
 import { useState } from "react";
+import { useVehiclePhotoUrl } from "@/hooks/use-vehicle-photo";
 
 type HistoryRow = {
   id: string;
