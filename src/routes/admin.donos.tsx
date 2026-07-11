@@ -1,10 +1,12 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { useMemo, useState } from "react";
-import { useQuery } from "@tanstack/react-query";
+import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
+import { toast } from "sonner";
 import { Card } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
-import { Search, ChevronRight, Loader2 } from "lucide-react";
+import { Button } from "@/components/ui/button";
+import { Search, ChevronRight, Loader2, CheckCircle2, XCircle } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { dateBR } from "@/lib/mock-data";
 import type { AccountStatus } from "@/hooks/use-auth";
@@ -49,6 +51,31 @@ const filters = [
 function DonosPage() {
   const [filter, setFilter] = useState<(typeof filters)[number]["key"]>("todos");
   const [search, setSearch] = useState("");
+  const qc = useQueryClient();
+
+  const decide = useMutation({
+    mutationFn: async ({ userId, next }: { userId: string; next: AccountStatus }) => {
+      const { data: userData } = await supabase.auth.getUser();
+      const adminId = userData.user?.id;
+      if (!adminId) throw new Error("Sessão expirada");
+      const { error } = await supabase
+        .from("profiles")
+        .update({ account_status: next })
+        .eq("user_id", userId);
+      if (error) throw error;
+      await supabase.from("administrative_logs").insert({
+        administrator_id: adminId,
+        affected_user_id: userId,
+        action: next === "ativo" ? "Cadastro aprovado" : "Cadastro recusado",
+        new_data: { account_status: next },
+      });
+    },
+    onSuccess: (_r, v) => {
+      toast.success(v.next === "ativo" ? "Dono aprovado" : "Cadastro recusado");
+      void qc.invalidateQueries({ queryKey: ["admin", "donos"] });
+    },
+    onError: (e: Error) => toast.error(e.message || "Erro ao atualizar"),
+  });
 
   const { data, isLoading } = useQuery({
     queryKey: ["admin", "donos"],
@@ -131,8 +158,8 @@ function DonosPage() {
         ) : (
           <div className="space-y-3">
             {rows.map((o) => (
-              <Link key={o.id} to="/admin/donos/$id" params={{ id: o.user_id }}>
-                <Card className="p-4 hover:bg-muted/40 transition-colors">
+              <Card key={o.id} className="p-4">
+                <Link to="/admin/donos/$id" params={{ id: o.user_id }} className="block -m-4 p-4 hover:bg-muted/40 transition-colors">
                   <div className="flex items-center gap-3">
                     <div className="h-11 w-11 rounded-full bg-primary text-primary-foreground grid place-items-center font-bold shrink-0">
                       {o.full_name
@@ -165,8 +192,28 @@ function DonosPage() {
                     </div>
                     <ChevronRight className="h-5 w-5 text-muted-foreground shrink-0" />
                   </div>
-                </Card>
-              </Link>
+                </Link>
+                {o.account_status === "pendente" && (
+                  <div className="grid grid-cols-2 gap-2 mt-3 pt-3 border-t">
+                    <Button
+                      variant="outline"
+                      className="h-10 gap-1 text-success border-success/40"
+                      disabled={decide.isPending}
+                      onClick={() => decide.mutate({ userId: o.user_id, next: "ativo" })}
+                    >
+                      <CheckCircle2 className="h-4 w-4" /> Aprovar
+                    </Button>
+                    <Button
+                      variant="outline"
+                      className="h-10 gap-1 text-destructive border-destructive/40"
+                      disabled={decide.isPending}
+                      onClick={() => decide.mutate({ userId: o.user_id, next: "recusado" })}
+                    >
+                      <XCircle className="h-4 w-4" /> Recusar
+                    </Button>
+                  </div>
+                )}
+              </Card>
             ))}
           </div>
         )}
