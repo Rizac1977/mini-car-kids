@@ -187,28 +187,8 @@ function RelatoriosPage() {
           </Card>
         </div>
 
-        <Card className="p-4">
-          <div className="flex items-center justify-between mb-4">
-            <h2 className="font-bold text-sm">Faturamento por dia</h2>
-            <span className="text-xs text-muted-foreground">Últimos 7 dias</span>
-          </div>
-          {metrics.days7.every((v) => v === 0) ? (
-            <div className="text-sm text-muted-foreground text-center py-8">Sem locações no período.</div>
-          ) : (
-            <div className="flex items-end gap-2 h-32">
-              {metrics.days7.map((v, i) => (
-                <div key={i} className="flex-1 flex flex-col items-center gap-1">
-                  <div
-                    className="w-full rounded-t-md bg-primary transition-all"
-                    style={{ height: `${Math.max(4, (v / metrics.maxDay7) * 100)}%` }}
-                    title={currency(v)}
-                  />
-                  <span className="text-[10px] text-muted-foreground">{metrics.dayLabels[i]}</span>
-                </div>
-              ))}
-            </div>
-          )}
-        </Card>
+        <BreakdownCard rows={rows} />
+
 
         <Card className="p-4">
           <h2 className="font-bold text-sm mb-3">Top veículos</h2>
