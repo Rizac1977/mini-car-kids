@@ -88,12 +88,22 @@ function DonosPage() {
   const { data, isLoading } = useQuery({
     queryKey: ["admin", "donos"],
     queryFn: async () => {
-      const { data, error } = await supabase
-        .from("profiles")
-        .select("id,user_id,full_name,business_name,city,state,account_status,created_at,subscriptions(status,current_period_end)")
-        .order("created_at", { ascending: false });
-      if (error) throw error;
-      return (data ?? []) as unknown as Row[];
+      const [profilesRes, subsRes] = await Promise.all([
+        supabase
+          .from("profiles")
+          .select("id,user_id,full_name,business_name,city,state,account_status,created_at")
+          .order("created_at", { ascending: false }),
+        supabase.from("subscriptions").select("user_id,status,current_period_end"),
+      ]);
+      if (profilesRes.error) throw profilesRes.error;
+      if (subsRes.error) throw subsRes.error;
+      const subMap = new Map(
+        (subsRes.data ?? []).map((s) => [s.user_id, { status: s.status, current_period_end: s.current_period_end }])
+      );
+      return (profilesRes.data ?? []).map((p) => ({
+        ...p,
+        subscriptions: subMap.get(p.user_id) ?? null,
+      })) as unknown as Row[];
     },
   });
 
