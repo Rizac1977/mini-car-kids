@@ -13,6 +13,8 @@ import {
   Trophy,
   AlertCircle,
   Loader2,
+  History,
+  BarChart3,
 } from "lucide-react";
 import { useAuth } from "@/hooks/use-auth";
 import { supabase } from "@/integrations/supabase/client";
@@ -318,6 +320,31 @@ function DashboardPage() {
         <Link to="/app/locacoes/nova">
           <Button className="w-full h-14 text-base font-bold">+ Iniciar nova locação</Button>
         </Link>
+
+        <div className="grid grid-cols-2 gap-3">
+          <Link to="/app/historico">
+            <Card className="p-4 flex items-center gap-3 hover:bg-muted/40 transition">
+              <div className="h-10 w-10 rounded-xl grid place-items-center bg-primary-soft text-primary">
+                <History className="h-5 w-5" />
+              </div>
+              <div className="min-w-0">
+                <div className="font-semibold">Histórico</div>
+                <div className="text-xs text-muted-foreground truncate">Locações finalizadas</div>
+              </div>
+            </Card>
+          </Link>
+          <Link to="/app/relatorios">
+            <Card className="p-4 flex items-center gap-3 hover:bg-muted/40 transition">
+              <div className="h-10 w-10 rounded-xl grid place-items-center bg-accent/20 text-accent-foreground">
+                <BarChart3 className="h-5 w-5" />
+              </div>
+              <div className="min-w-0">
+                <div className="font-semibold">Relatórios</div>
+                <div className="text-xs text-muted-foreground truncate">Faturamento e rankings</div>
+              </div>
+            </Card>
+          </Link>
+        </div>
       </div>
     </AppShell>
   );
