@@ -10,6 +10,7 @@ import { useAuth } from "@/hooks/use-auth";
 import { supabase } from "@/integrations/supabase/client";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
+import { useVehiclePhotoUrl } from "@/hooks/use-vehicle-photo";
 
 type ActiveRental = {
   id: string;
