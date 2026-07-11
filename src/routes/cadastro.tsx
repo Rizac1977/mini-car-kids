@@ -68,7 +68,7 @@ function CadastroPage() {
       },
     });
     if (error) {
-      toast.error(error.message);
+      toast.error(translateAuthError(error.message));
       setLoading(false);
       return;
     }
