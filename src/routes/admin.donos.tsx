@@ -174,6 +174,79 @@ function DonosPage() {
           ))}
         </div>
 
+        <button
+          type="button"
+          onClick={() => setShowAdvanced((v) => !v)}
+          className="text-xs text-muted-foreground underline underline-offset-2 self-start"
+        >
+          {showAdvanced ? "Ocultar filtros avançados" : "Mostrar filtros avançados"}
+        </button>
+
+        {showAdvanced && (
+          <Card className="p-3 space-y-3">
+            <div className="grid grid-cols-2 gap-2">
+              <div>
+                <label className="text-xs text-muted-foreground">Estado (UF)</label>
+                <Input
+                  placeholder="SP"
+                  value={stateFilter}
+                  onChange={(e) => setStateFilter(e.target.value)}
+                  className="h-9 mt-1"
+                />
+              </div>
+              <div>
+                <label className="text-xs text-muted-foreground">Assinatura</label>
+                <select
+                  value={subStatus}
+                  onChange={(e) => setSubStatus(e.target.value as typeof subStatus)}
+                  className="mt-1 h-9 w-full rounded-md border border-input bg-background px-2 text-sm"
+                >
+                  <option value="todas">Todas</option>
+                  <option value="trial">Trial</option>
+                  <option value="ativa">Ativa</option>
+                  <option value="inadimplente">Inadimplente</option>
+                  <option value="cancelada">Cancelada</option>
+                  <option value="vencendo">Vencendo em 7 dias</option>
+                  <option value="vencidas">Vencidas</option>
+                </select>
+              </div>
+              <div>
+                <label className="text-xs text-muted-foreground">Entrada de</label>
+                <Input
+                  type="date"
+                  value={fromDate}
+                  onChange={(e) => setFromDate(e.target.value)}
+                  className="h-9 mt-1"
+                />
+              </div>
+              <div>
+                <label className="text-xs text-muted-foreground">Até</label>
+                <Input
+                  type="date"
+                  value={toDate}
+                  onChange={(e) => setToDate(e.target.value)}
+                  className="h-9 mt-1"
+                />
+              </div>
+            </div>
+            {(stateFilter || subStatus !== "todas" || fromDate || toDate) && (
+              <Button
+                variant="outline"
+                className="h-8 w-full text-xs"
+                onClick={() => {
+                  setStateFilter("");
+                  setSubStatus("todas");
+                  setFromDate("");
+                  setToDate("");
+                }}
+              >
+                Limpar filtros
+              </Button>
+            )}
+          </Card>
+        )}
+
+
         {isLoading ? (
           <div className="py-16 grid place-items-center text-muted-foreground">
             <Loader2 className="h-6 w-6 animate-spin" />
