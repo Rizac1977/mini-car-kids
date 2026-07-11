@@ -10,7 +10,6 @@ import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { Textarea } from "@/components/ui/textarea";
 import { Badge } from "@/components/ui/badge";
 import {
   Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter,
@@ -19,11 +18,7 @@ import {
   AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent,
   AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
-import {
-  Select, SelectContent, SelectItem, SelectTrigger, SelectValue,
-} from "@/components/ui/select";
 import { supabase } from "@/integrations/supabase/client";
-import { currency } from "@/lib/mock-data";
 
 export const Route = createFileRoute("/app/veiculos")({
   ssr: false,
@@ -41,41 +36,26 @@ type VehicleStatus = "disponivel" | "em_locacao" | "manutencao" | "inativo";
 type Vehicle = {
   id: string;
   user_id: string;
-  location_id: string | null;
   name: string;
-  code: string | null;
-  category: string | null;
-  model: string | null;
-  color: string | null;
   purchase_date: string | null;
-  purchase_value: number | null;
   photo_url: string | null;
-  notes: string | null;
   status: VehicleStatus;
+  created_at: string;
 };
-
-type LocationLite = { id: string; name: string };
 
 type FormState = {
   id?: string;
   name: string;
-  code: string;
-  category: string;
-  model: string;
-  color: string;
   purchase_date: string;
-  purchase_value: string;
-  location_id: string;
-  status: VehicleStatus;
-  notes: string;
   photo_url: string | null;
   photo_file: File | null;
 };
 
 const emptyForm: FormState = {
-  name: "", code: "", category: "", model: "", color: "",
-  purchase_date: "", purchase_value: "", location_id: "",
-  status: "disponivel", notes: "", photo_url: null, photo_file: null,
+  name: "",
+  purchase_date: new Date().toISOString().slice(0, 10),
+  photo_url: null,
+  photo_file: null,
 };
 
 const statusMeta: Record<VehicleStatus, { label: string; className: string }> = {
@@ -93,7 +73,11 @@ const filters: Array<{ key: "todos" | VehicleStatus; label: string }> = [
   { key: "inativo", label: "Inativos" },
 ];
 
-const NO_LOCATION = "__none__";
+function formatDateBR(iso: string | null) {
+  if (!iso) return "—";
+  const [y, m, d] = iso.split("-");
+  return `${d}/${m}/${y}`;
+}
 
 function VeiculosPage() {
   const qc = useQueryClient();
@@ -107,84 +91,56 @@ function VeiculosPage() {
     queryFn: async () => {
       const { data, error } = await supabase
         .from("vehicles")
-        .select("*")
+        .select("id,user_id,name,purchase_date,photo_url,status,created_at")
         .order("created_at", { ascending: false });
       if (error) throw error;
       return (data ?? []) as Vehicle[];
     },
   });
 
-  const { data: locations } = useQuery({
-    queryKey: ["locations", "lite"],
-    queryFn: async () => {
-      const { data, error } = await supabase
-        .from("locations")
-        .select("id,name")
-        .eq("is_active", true)
-        .order("name");
-      if (error) throw error;
-      return (data ?? []) as LocationLite[];
-    },
-  });
-
-  const locationName = useMemo(() => {
-    const m = new Map<string, string>();
-    (locations ?? []).forEach((l) => m.set(l.id, l.name));
-    return m;
-  }, [locations]);
-
   const filtered = useMemo(() => {
     const q = search.trim().toLowerCase();
     return (vehicles ?? []).filter((v) => {
       if (filter !== "todos" && v.status !== filter) return false;
       if (!q) return true;
-      return (
-        v.name.toLowerCase().includes(q) ||
-        (v.code ?? "").toLowerCase().includes(q)
-      );
+      return v.name.toLowerCase().includes(q);
     });
   }, [vehicles, filter, search]);
 
   const saveMut = useMutation({
     mutationFn: async (f: FormState) => {
-      const { data: u } = await supabase.auth.getUser();
-      if (!u.user) throw new Error("Sessão inválida");
+      const { data: u, error: userErr } = await supabase.auth.getUser();
+      if (userErr || !u.user) throw new Error("Sessão inválida. Faça login novamente.");
 
       let photo_url = f.photo_url;
       if (f.photo_file) {
-        const ext = f.photo_file.name.split(".").pop() || "jpg";
-        const path = `${u.user.id}/${crypto.randomUUID()}.${ext}`;
+        const ext = (f.photo_file.name.split(".").pop() || "jpg").toLowerCase();
+        const rand =
+          typeof crypto !== "undefined" && "randomUUID" in crypto
+            ? crypto.randomUUID()
+            : `${Date.now()}-${Math.random().toString(36).slice(2)}`;
+        const path = `${u.user.id}/${rand}.${ext}`;
         const { error: upErr } = await supabase.storage
           .from("vehicle-photos")
-          .upload(path, f.photo_file, { upsert: false });
-        if (upErr) throw upErr;
+          .upload(path, f.photo_file, { upsert: false, contentType: f.photo_file.type });
+        if (upErr) throw new Error(`Falha ao enviar foto: ${upErr.message}`);
         photo_url = path;
       }
 
       const payload = {
         name: f.name.trim(),
-        code: f.code.trim() || null,
-        category: f.category.trim() || null,
-        model: f.model.trim() || null,
-        color: f.color.trim() || null,
         purchase_date: f.purchase_date || null,
-        purchase_value: f.purchase_value
-          ? Number(f.purchase_value.replace(",", "."))
-          : null,
-        location_id: f.location_id || null,
-        status: f.status,
-        notes: f.notes.trim() || null,
         photo_url,
       };
 
       if (f.id) {
         const { error } = await supabase.from("vehicles").update(payload).eq("id", f.id);
-        if (error) throw error;
+        if (error) throw new Error(error.message);
       } else {
         const { error } = await supabase
           .from("vehicles")
           .insert({ ...payload, user_id: u.user.id });
-        if (error) throw error;
+        if (error) throw new Error(error.message);
       }
     },
     onSuccess: () => {
@@ -218,7 +174,7 @@ function VeiculosPage() {
           <div className="relative flex-1">
             <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
             <Input
-              placeholder="Buscar por nome ou código"
+              placeholder="Buscar por nome"
               className="h-12 pl-10"
               value={search}
               onChange={(e) => setSearch(e.target.value)}
@@ -271,20 +227,11 @@ function VeiculosPage() {
               <VehicleCard
                 key={v.id}
                 v={v}
-                locationName={locationName.get(v.location_id ?? "") ?? null}
                 onEdit={() =>
                   setEditing({
                     id: v.id,
                     name: v.name,
-                    code: v.code ?? "",
-                    category: v.category ?? "",
-                    model: v.model ?? "",
-                    color: v.color ?? "",
                     purchase_date: v.purchase_date ?? "",
-                    purchase_value: v.purchase_value != null ? String(v.purchase_value) : "",
-                    location_id: v.location_id ?? "",
-                    status: v.status,
-                    notes: v.notes ?? "",
                     photo_url: v.photo_url,
                     photo_file: null,
                   })
@@ -302,11 +249,7 @@ function VeiculosPage() {
             <DialogTitle>{editing?.id ? "Editar veículo" : "Novo veículo"}</DialogTitle>
           </DialogHeader>
           {editing && (
-            <VehicleForm
-              form={editing}
-              setForm={setEditing}
-              locations={locations ?? []}
-            />
+            <VehicleForm form={editing} setForm={setEditing} />
           )}
           <DialogFooter className="gap-2 sm:gap-2">
             <Button variant="outline" className="h-11 gap-2" onClick={() => setEditing(null)} disabled={saveMut.isPending}>
@@ -347,10 +290,9 @@ function VeiculosPage() {
 }
 
 function VehicleCard({
-  v, locationName, onEdit, onDelete,
+  v, onEdit, onDelete,
 }: {
   v: Vehicle;
-  locationName: string | null;
   onEdit: () => void;
   onDelete: () => void;
 }) {
@@ -370,19 +312,11 @@ function VehicleCard({
           <div className="flex items-start justify-between gap-2">
             <div className="min-w-0">
               <div className="font-semibold truncate">{v.name}</div>
-              <div className="text-xs text-muted-foreground truncate">
-                {[v.code, locationName ?? "Sem local"].filter(Boolean).join(" · ")}
+              <div className="text-xs text-muted-foreground">
+                Cadastrado em {formatDateBR(v.purchase_date)}
               </div>
             </div>
             <Badge variant="outline" className={meta.className}>{meta.label}</Badge>
-          </div>
-          <div className="mt-3 flex items-center justify-between text-xs">
-            <div className="text-muted-foreground truncate">
-              {v.category || "Sem categoria"}
-            </div>
-            <div className="text-muted-foreground shrink-0">
-              {v.purchase_value != null ? currency(Number(v.purchase_value)) : "—"}
-            </div>
           </div>
           <div className="flex gap-4 mt-3">
             <button
@@ -405,24 +339,23 @@ function VehicleCard({
 }
 
 function VehicleForm({
-  form, setForm, locations,
+  form, setForm,
 }: {
   form: FormState;
   setForm: (f: FormState) => void;
-  locations: LocationLite[];
 }) {
-  const preview = form.photo_file
-    ? URL.createObjectURL(form.photo_file)
-    : usePhotoUrl(form.photo_url);
+  const localPreview = form.photo_file ? URL.createObjectURL(form.photo_file) : null;
+  const remotePreview = usePhotoUrl(localPreview ? null : form.photo_url);
+  const preview = localPreview ?? remotePreview;
 
   return (
-    <div className="space-y-3">
+    <div className="space-y-4">
       <div className="flex flex-col items-center gap-3 py-2">
-        <div className="h-24 w-24 rounded-2xl bg-muted grid place-items-center overflow-hidden">
+        <div className="h-28 w-28 rounded-2xl bg-muted grid place-items-center overflow-hidden">
           {preview ? (
             <img src={preview} alt="" className="h-full w-full object-cover" />
           ) : (
-            <Car className="h-10 w-10 text-muted-foreground" />
+            <Car className="h-12 w-12 text-muted-foreground" />
           )}
         </div>
         <label className="inline-flex items-center gap-2 text-sm font-medium text-primary cursor-pointer">
@@ -441,7 +374,7 @@ function VehicleForm({
       </div>
 
       <div className="space-y-1.5">
-        <Label>Nome *</Label>
+        <Label>Nome do veículo *</Label>
         <Input
           className="h-11"
           placeholder="Ex: Mustang Vermelho"
@@ -450,115 +383,13 @@ function VehicleForm({
         />
       </div>
 
-      <div className="grid grid-cols-2 gap-3">
-        <div className="space-y-1.5">
-          <Label>Código</Label>
-          <Input
-            className="h-11"
-            placeholder="MC-01"
-            value={form.code}
-            onChange={(e) => setForm({ ...form, code: e.target.value })}
-          />
-        </div>
-        <div className="space-y-1.5">
-          <Label>Cor</Label>
-          <Input
-            className="h-11"
-            value={form.color}
-            onChange={(e) => setForm({ ...form, color: e.target.value })}
-          />
-        </div>
-      </div>
-
-      <div className="grid grid-cols-2 gap-3">
-        <div className="space-y-1.5">
-          <Label>Categoria</Label>
-          <Input
-            className="h-11"
-            placeholder="Esportivo, jipe..."
-            value={form.category}
-            onChange={(e) => setForm({ ...form, category: e.target.value })}
-          />
-        </div>
-        <div className="space-y-1.5">
-          <Label>Modelo</Label>
-          <Input
-            className="h-11"
-            value={form.model}
-            onChange={(e) => setForm({ ...form, model: e.target.value })}
-          />
-        </div>
-      </div>
-
-      <div className="grid grid-cols-2 gap-3">
-        <div className="space-y-1.5">
-          <Label>Aquisição</Label>
-          <Input
-            type="date"
-            className="h-11"
-            value={form.purchase_date}
-            onChange={(e) => setForm({ ...form, purchase_date: e.target.value })}
-          />
-        </div>
-        <div className="space-y-1.5">
-          <Label>Valor (R$)</Label>
-          <Input
-            inputMode="decimal"
-            className="h-11"
-            placeholder="0,00"
-            value={form.purchase_value}
-            onChange={(e) => setForm({ ...form, purchase_value: e.target.value })}
-          />
-        </div>
-      </div>
-
       <div className="space-y-1.5">
-        <Label>Local atual</Label>
-        <Select
-          value={form.location_id || NO_LOCATION}
-          onValueChange={(v) => setForm({ ...form, location_id: v === NO_LOCATION ? "" : v })}
-        >
-          <SelectTrigger className="h-11">
-            <SelectValue placeholder="Selecione um local" />
-          </SelectTrigger>
-          <SelectContent>
-            <SelectItem value={NO_LOCATION}>Sem local definido</SelectItem>
-            {locations.map((l) => (
-              <SelectItem key={l.id} value={l.id}>{l.name}</SelectItem>
-            ))}
-          </SelectContent>
-        </Select>
-        {locations.length === 0 && (
-          <p className="text-xs text-muted-foreground">
-            Você ainda não cadastrou locais. Cadastre em "Locais de atuação".
-          </p>
-        )}
-      </div>
-
-      <div className="space-y-1.5">
-        <Label>Status</Label>
-        <Select
-          value={form.status}
-          onValueChange={(v) => setForm({ ...form, status: v as VehicleStatus })}
-        >
-          <SelectTrigger className="h-11">
-            <SelectValue />
-          </SelectTrigger>
-          <SelectContent>
-            {(Object.keys(statusMeta) as VehicleStatus[]).map((s) => (
-              <SelectItem key={s} value={s}>{statusMeta[s].label}</SelectItem>
-            ))}
-          </SelectContent>
-        </Select>
-      </div>
-
-      <div className="space-y-1.5">
-        <Label>Observações</Label>
-        <Textarea
-          rows={3}
-          placeholder="Notas internas sobre o veículo"
-          value={form.notes}
-          onChange={(e) => setForm({ ...form, notes: e.target.value })}
+        <Label>Data do cadastro</Label>
+        <Input
+          type="date"
+          className="h-11"
+          value={form.purchase_date}
+          onChange={(e) => setForm({ ...form, purchase_date: e.target.value })}
         />
       </div>
     </div>
