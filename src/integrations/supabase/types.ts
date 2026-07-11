@@ -44,6 +44,45 @@ export type Database = {
         }
         Relationships: []
       }
+      locations: {
+        Row: {
+          address: string | null
+          city: string | null
+          created_at: string
+          id: string
+          is_active: boolean
+          name: string
+          notes: string | null
+          state: string | null
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          address?: string | null
+          city?: string | null
+          created_at?: string
+          id?: string
+          is_active?: boolean
+          name: string
+          notes?: string | null
+          state?: string | null
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          address?: string | null
+          city?: string | null
+          created_at?: string
+          id?: string
+          is_active?: boolean
+          name?: string
+          notes?: string | null
+          state?: string | null
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
       profiles: {
         Row: {
           account_status: Database["public"]["Enums"]["account_status"]
@@ -86,6 +125,42 @@ export type Database = {
         }
         Relationships: []
       }
+      subscriptions: {
+        Row: {
+          created_at: string
+          current_period_end: string
+          id: string
+          notes: string | null
+          plan: string
+          started_at: string
+          status: Database["public"]["Enums"]["subscription_status"]
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          current_period_end?: string
+          id?: string
+          notes?: string | null
+          plan?: string
+          started_at?: string
+          status?: Database["public"]["Enums"]["subscription_status"]
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          current_period_end?: string
+          id?: string
+          notes?: string | null
+          plan?: string
+          started_at?: string
+          status?: Database["public"]["Enums"]["subscription_status"]
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
       user_roles: {
         Row: {
           created_at: string
@@ -123,6 +198,7 @@ export type Database = {
     Enums: {
       account_status: "pendente" | "ativo" | "suspenso" | "recusado"
       app_role: "platform_admin" | "vehicle_owner"
+      subscription_status: "trial" | "ativa" | "inadimplente" | "cancelada"
     }
     CompositeTypes: {
       [_ in never]: never
@@ -252,6 +328,7 @@ export const Constants = {
     Enums: {
       account_status: ["pendente", "ativo", "suspenso", "recusado"],
       app_role: ["platform_admin", "vehicle_owner"],
+      subscription_status: ["trial", "ativa", "inadimplente", "cancelada"],
     },
   },
 } as const
