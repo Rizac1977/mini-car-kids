@@ -5,7 +5,7 @@ import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { BrandLogo } from "@/components/brand-logo";
 import { supabase } from "@/integrations/supabase/client";
-import { fetchProfileAndRole, routeForUser, signOut, type AccountStatus } from "@/hooks/use-auth";
+import { fetchProfileAndRole, signOut, type AccountStatus } from "@/hooks/use-auth";
 
 export const Route = createFileRoute("/aguardando-aprovacao")({
   ssr: false,
