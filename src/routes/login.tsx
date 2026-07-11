@@ -8,6 +8,7 @@ import { Label } from "@/components/ui/label";
 import { BrandLogo } from "@/components/brand-logo";
 import { supabase } from "@/integrations/supabase/client";
 import { fetchProfileAndRole, routeForUser } from "@/hooks/use-auth";
+import { translateAuthError } from "@/lib/auth-errors";
 
 export const Route = createFileRoute("/login")({
   ssr: false,
