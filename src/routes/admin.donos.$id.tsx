@@ -23,7 +23,7 @@ import {
   User as UserIcon,
 } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
-import { dateBR, formatBRL } from "@/lib/mock-data";
+import { dateBR, currency } from "@/lib/mock-data";
 import type { AccountStatus } from "@/hooks/use-auth";
 import { AdminShell } from "./admin.index";
 import { ApproveOwnerDialog } from "@/components/approve-owner-dialog";
@@ -82,7 +82,7 @@ type Vehicle = {
 type Rental = {
   id: string;
   status: string;
-  total_amount: number | null;
+  amount: number | null;
   price_per_minute: number | null;
   planned_minutes: number | null;
   started_at: string;
@@ -136,7 +136,7 @@ function DonoDetailPage() {
       const { data, error } = await supabase
         .from("vehicles")
         .select("id,name,status,photo_url,created_at")
-        .eq("owner_id", userId)
+        .eq("user_id", userId)
         .order("created_at", { ascending: false });
       if (error) throw error;
       return (data ?? []) as Vehicle[];
@@ -148,8 +148,8 @@ function DonoDetailPage() {
     queryFn: async () => {
       const { data, error } = await supabase
         .from("rentals")
-        .select("id,status,total_amount,price_per_minute,planned_minutes,started_at,ended_at")
-        .eq("owner_id", userId)
+        .select("id,status,amount,price_per_minute,planned_minutes,started_at,ended_at")
+        .eq("user_id", userId)
         .order("started_at", { ascending: false });
       if (error) throw error;
       return (data ?? []) as Rental[];
@@ -191,7 +191,7 @@ function DonoDetailPage() {
     const list = rentals ?? [];
     const finalized = list.filter((r) => r.status === "finalizada");
     const active = list.filter((r) => r.status === "ativa").length;
-    const revenue = finalized.reduce((s, r) => s + Number(r.total_amount ?? 0), 0);
+    const revenue = finalized.reduce((s, r) => s + Number(r.amount ?? 0), 0);
     return {
       totalRentals: list.length,
       finalized: finalized.length,
@@ -336,7 +336,7 @@ function DonoDetailPage() {
       <div className="grid grid-cols-2 gap-2 mb-4">
         <StatCard icon={Car} label="Veículos" value={String(vehicles?.length ?? 0)} />
         <StatCard icon={Timer} label="Locações" value={String(stats.totalRentals)} />
-        <StatCard icon={DollarSign} label="Faturamento" value={formatBRL(stats.revenue)} />
+        <StatCard icon={DollarSign} label="Faturamento" value={currency(stats.revenue)} />
         <StatCard
           icon={Calendar}
           label="Teste restante"
@@ -481,7 +481,7 @@ function DonoDetailPage() {
                   </div>
                 </div>
                 <div className="text-right">
-                  <div className="font-semibold">{formatBRL(Number(r.total_amount ?? 0))}</div>
+                  <div className="font-semibold">{currency(Number(r.amount ?? 0))}</div>
                   <div className="text-xs text-muted-foreground">
                     {r.planned_minutes ?? 0} min
                   </div>
