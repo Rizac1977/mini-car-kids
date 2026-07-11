@@ -80,6 +80,19 @@ function formatDateBR(iso: string | null) {
   return `${d}/${m}/${y}`;
 }
 
+function fmtCountdown(ms: number) {
+  const total = Math.max(0, Math.floor(ms / 1000));
+  const m = Math.floor(total / 60);
+  const s = total % 60;
+  return `${String(m).padStart(2, "0")}:${String(s).padStart(2, "0")}`;
+}
+
+type ActiveRental = {
+  vehicle_id: string;
+  planned_end_at: string;
+  paused_at: string | null;
+};
+
 function VeiculosPage() {
   const qc = useQueryClient();
   const [editing, setEditing] = useState<FormState | null>(null);
