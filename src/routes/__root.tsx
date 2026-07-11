@@ -81,9 +81,13 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
       { name: "description", content: "Controle o tempo, valores e histórico das locações dos seus veículos elétricos infantis." },
       { name: "author", content: "MiniCar Gestão" },
       { property: "og:title", content: "MiniCar Gestão" },
-      { property: "og:description", content: "Plataforma de gestão de locações por tempo para veículos elétricos infantis." },
+      { property: "og:description", content: "Controle o tempo, valores e histórico das locações dos seus veículos elétricos infantis." },
       { property: "og:type", content: "website" },
       { name: "twitter:card", content: "summary_large_image" },
+      { name: "twitter:title", content: "MiniCar Gestão" },
+      { name: "twitter:description", content: "Controle o tempo, valores e histórico das locações dos seus veículos elétricos infantis." },
+      { property: "og:image", content: "https://pub-bb2e103a32db4e198524a2e9ed8f35b4.r2.dev/26e546b8-adb7-40b3-814e-9b0324549057/id-preview-d24f591b--e623a241-5062-49c7-81f7-807f36098863.lovable.app-1783737209417.png" },
+      { name: "twitter:image", content: "https://pub-bb2e103a32db4e198524a2e9ed8f35b4.r2.dev/26e546b8-adb7-40b3-814e-9b0324549057/id-preview-d24f591b--e623a241-5062-49c7-81f7-807f36098863.lovable.app-1783737209417.png" },
     ],
     links: [
       {
