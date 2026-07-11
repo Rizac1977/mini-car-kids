@@ -4,7 +4,7 @@ import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Progress } from "@/components/ui/progress";
 import { currency, timeBR } from "@/lib/mock-data";
-import { RefreshCw, Square, Clock, Plus, Loader2 } from "lucide-react";
+import { RefreshCw, Square, Clock, Plus, Loader2, Pause, Play } from "lucide-react";
 import { useEffect, useState } from "react";
 import { useAuth } from "@/hooks/use-auth";
 import { supabase } from "@/integrations/supabase/client";
@@ -18,8 +18,16 @@ type ActiveRental = {
   amount: number;
   started_at: string;
   planned_end_at: string;
+  paused_at: string | null;
   vehicles: { name: string; photo_url: string | null } | null;
 };
+
+function fmtCountdown(ms: number) {
+  const s = Math.max(0, Math.ceil(ms / 1000));
+  const m = Math.floor(s / 60);
+  const r = s % 60;
+  return `${String(m).padStart(2, "0")}:${String(r).padStart(2, "0")}`;
+}
 
 
 export const Route = createFileRoute("/app/locacoes/")({
