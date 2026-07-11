@@ -7,7 +7,8 @@ import { Download, Loader2 } from "lucide-react";
 import { useAuth } from "@/hooks/use-auth";
 import { supabase } from "@/integrations/supabase/client";
 import { useQuery } from "@tanstack/react-query";
-import { useMemo } from "react";
+import { useMemo, useState } from "react";
+import { cn } from "@/lib/utils";
 
 type RentalRow = {
   id: string;
@@ -186,28 +187,8 @@ function RelatoriosPage() {
           </Card>
         </div>
 
-        <Card className="p-4">
-          <div className="flex items-center justify-between mb-4">
-            <h2 className="font-bold text-sm">Faturamento por dia</h2>
-            <span className="text-xs text-muted-foreground">Últimos 7 dias</span>
-          </div>
-          {metrics.days7.every((v) => v === 0) ? (
-            <div className="text-sm text-muted-foreground text-center py-8">Sem locações no período.</div>
-          ) : (
-            <div className="flex items-end gap-2 h-32">
-              {metrics.days7.map((v, i) => (
-                <div key={i} className="flex-1 flex flex-col items-center gap-1">
-                  <div
-                    className="w-full rounded-t-md bg-primary transition-all"
-                    style={{ height: `${Math.max(4, (v / metrics.maxDay7) * 100)}%` }}
-                    title={currency(v)}
-                  />
-                  <span className="text-[10px] text-muted-foreground">{metrics.dayLabels[i]}</span>
-                </div>
-              ))}
-            </div>
-          )}
-        </Card>
+        <BreakdownCard rows={rows} />
+
 
         <Card className="p-4">
           <h2 className="font-bold text-sm mb-3">Top veículos</h2>
@@ -259,3 +240,148 @@ function RelatoriosPage() {
     </AppShell>
   );
 }
+
+function BreakdownCard({ rows }: { rows: RentalRow[] }) {
+  const [period, setPeriod] = useState<"diario" | "semanal" | "mensal">("diario");
+
+  const buckets = useMemo(() => {
+    const now = new Date();
+    const items: { label: string; value: number }[] = [];
+
+    if (period === "diario") {
+      // últimos 14 dias
+      for (let i = 13; i >= 0; i--) {
+        const d = new Date(now.getFullYear(), now.getMonth(), now.getDate() - i);
+        items.push({
+          label: d.toLocaleDateString("pt-BR", { day: "2-digit", month: "2-digit" }),
+          value: 0,
+        });
+      }
+      const start = new Date(now.getFullYear(), now.getMonth(), now.getDate() - 13);
+      for (const r of rows) {
+        const dt = new Date(r.started_at);
+        if (dt < start) continue;
+        const idx = Math.floor(
+          (new Date(dt.getFullYear(), dt.getMonth(), dt.getDate()).getTime() - start.getTime()) / 86400000,
+        );
+        if (idx >= 0 && idx < items.length) items[idx].value += Number(r.amount);
+      }
+    } else if (period === "semanal") {
+      // últimas 8 semanas (segunda a domingo)
+      const startOfWeek = (d: Date) => {
+        const x = new Date(d.getFullYear(), d.getMonth(), d.getDate());
+        const dow = (x.getDay() + 6) % 7; // 0 = segunda
+        x.setDate(x.getDate() - dow);
+        return x;
+      };
+      const thisWeek = startOfWeek(now);
+      for (let i = 7; i >= 0; i--) {
+        const s = new Date(thisWeek);
+        s.setDate(s.getDate() - i * 7);
+        const e = new Date(s);
+        e.setDate(e.getDate() + 6);
+        items.push({
+          label: `${s.getDate().toString().padStart(2, "0")}/${(s.getMonth() + 1).toString().padStart(2, "0")}`,
+          value: 0,
+        });
+      }
+      const first = new Date(thisWeek);
+      first.setDate(first.getDate() - 7 * 7);
+      for (const r of rows) {
+        const dt = startOfWeek(new Date(r.started_at));
+        if (dt < first) continue;
+        const idx = Math.round((dt.getTime() - first.getTime()) / (7 * 86400000));
+        if (idx >= 0 && idx < items.length) items[idx].value += Number(r.amount);
+      }
+    } else {
+      // últimos 12 meses
+      const meses = ["Jan","Fev","Mar","Abr","Mai","Jun","Jul","Ago","Set","Out","Nov","Dez"];
+      for (let i = 11; i >= 0; i--) {
+        const d = new Date(now.getFullYear(), now.getMonth() - i, 1);
+        items.push({
+          label: `${meses[d.getMonth()]}/${String(d.getFullYear()).slice(2)}`,
+          value: 0,
+        });
+      }
+      const first = new Date(now.getFullYear(), now.getMonth() - 11, 1);
+      for (const r of rows) {
+        const dt = new Date(r.started_at);
+        if (dt < first) continue;
+        const idx = (dt.getFullYear() - first.getFullYear()) * 12 + (dt.getMonth() - first.getMonth());
+        if (idx >= 0 && idx < items.length) items[idx].value += Number(r.amount);
+      }
+    }
+    return items;
+  }, [rows, period]);
+
+  const max = Math.max(1, ...buckets.map((b) => b.value));
+  const total = buckets.reduce((s, b) => s + b.value, 0);
+  const empty = buckets.every((b) => b.value === 0);
+
+  const tabs: { id: typeof period; label: string }[] = [
+    { id: "diario", label: "Diário" },
+    { id: "semanal", label: "Semanal" },
+    { id: "mensal", label: "Mensal" },
+  ];
+
+  return (
+    <Card className="p-4">
+      <div className="flex items-center justify-between mb-3 gap-2">
+        <h2 className="font-bold text-sm">Faturamento detalhado</h2>
+        <div className="inline-flex rounded-lg bg-muted p-0.5">
+          {tabs.map((t) => (
+            <button
+              key={t.id}
+              onClick={() => setPeriod(t.id)}
+              className={cn(
+                "px-2.5 py-1 text-xs rounded-md transition-colors",
+                period === t.id ? "bg-background shadow-sm font-semibold" : "text-muted-foreground",
+              )}
+            >
+              {t.label}
+            </button>
+          ))}
+        </div>
+      </div>
+      <div className="text-xs text-muted-foreground mb-3">
+        Total no período: <span className="font-semibold text-foreground">{currency(total)}</span>
+      </div>
+      {empty ? (
+        <div className="text-sm text-muted-foreground text-center py-8">Sem locações no período.</div>
+      ) : (
+        <>
+          <div className="flex items-end gap-1.5 h-36">
+            {buckets.map((b, i) => (
+              <div key={i} className="flex-1 flex flex-col items-center gap-1 min-w-0">
+                <div
+                  className="w-full rounded-t-md bg-primary transition-all"
+                  style={{ height: `${Math.max(3, (b.value / max) * 100)}%` }}
+                  title={`${b.label}: ${currency(b.value)}`}
+                />
+              </div>
+            ))}
+          </div>
+          <div className="flex gap-1.5 mt-1">
+            {buckets.map((b, i) => (
+              <div
+                key={i}
+                className="flex-1 text-[9px] text-muted-foreground text-center truncate min-w-0"
+              >
+                {b.label}
+              </div>
+            ))}
+          </div>
+          <div className="mt-4 max-h-48 overflow-y-auto border-t pt-3 space-y-1.5">
+            {[...buckets].reverse().filter((b) => b.value > 0).map((b, i) => (
+              <div key={i} className="flex items-center justify-between text-xs">
+                <span className="text-muted-foreground">{b.label}</span>
+                <span className="font-semibold">{currency(b.value)}</span>
+              </div>
+            ))}
+          </div>
+        </>
+      )}
+    </Card>
+  );
+}
+
