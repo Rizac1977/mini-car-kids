@@ -69,9 +69,16 @@ function AdminShell({ title, children }: { title: string; children: ReactNode })
           })}
         </nav>
         <div className="p-3 border-t border-sidebar-border">
-          <Link to="/login" className="flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm hover:bg-sidebar-accent">
+          <button
+            onClick={async () => {
+              const { signOut } = await import("@/hooks/use-auth");
+              await signOut();
+              window.location.href = "/login";
+            }}
+            className="w-full flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm hover:bg-sidebar-accent"
+          >
             <LogOut className="h-4 w-4" /> Sair
-          </Link>
+          </button>
         </div>
       </aside>
       <div className="lg:pl-64">
