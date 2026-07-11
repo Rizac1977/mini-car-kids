@@ -83,7 +83,6 @@ type Rental = {
   id: string;
   status: string;
   amount: number | null;
-  price_per_minute: number | null;
   planned_minutes: number | null;
   started_at: string;
   ended_at: string | null;
