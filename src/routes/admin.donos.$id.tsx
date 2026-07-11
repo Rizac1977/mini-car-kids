@@ -578,6 +578,25 @@ function DonoDetailPage() {
           )}
         </TabsContent>
 
+        <TabsContent value="relatorios" className="mt-4 space-y-2">
+          <div className="grid grid-cols-2 gap-2">
+            <StatCard icon={DollarSign} label="Faturamento total" value={currency(stats.revenue)} />
+            <StatCard icon={Timer} label="Locações finalizadas" value={String(stats.finalized)} />
+            <StatCard icon={Timer} label="Locações ativas" value={String(stats.active)} />
+            <StatCard
+              icon={DollarSign}
+              label="Ticket médio"
+              value={currency(stats.finalized > 0 ? stats.revenue / stats.finalized : 0)}
+            />
+          </div>
+          {stats.totalRentals === 0 && (
+            <Card className="p-4 text-sm text-muted-foreground text-center">
+              <BarChart3 className="h-6 w-6 mx-auto mb-2 opacity-50" />
+              Sem dados para gerar relatórios ainda.
+            </Card>
+          )}
+        </TabsContent>
+
         <TabsContent value="log" className="mt-4 space-y-2">
           {(logs ?? []).length === 0 ? (
             <Card className="p-4 text-sm text-muted-foreground text-center">
@@ -601,6 +620,13 @@ function DonoDetailPage() {
         onOpenChange={setApproveOpen}
         userId={userId}
         ownerName={profile.full_name}
+      />
+
+      <ManageSubscriptionDialog
+        open={manageOpen}
+        onOpenChange={setManageOpen}
+        userId={userId}
+        current={sub}
       />
     </AdminShell>
   );
