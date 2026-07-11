@@ -147,7 +147,7 @@ function DonoDetailPage() {
     queryFn: async () => {
       const { data, error } = await supabase
         .from("rentals")
-        .select("id,status,amount,price_per_minute,planned_minutes,started_at,ended_at")
+        .select("id,status,amount,planned_minutes,started_at,ended_at")
         .eq("user_id", userId)
         .order("started_at", { ascending: false });
       if (error) throw error;
