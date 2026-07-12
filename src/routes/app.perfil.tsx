@@ -14,6 +14,7 @@ import { Label } from "@/components/ui/label";
 import { Badge } from "@/components/ui/badge";
 import { supabase } from "@/integrations/supabase/client";
 import { signOut, type Profile } from "@/hooks/use-auth";
+import { ChangePasswordCard } from "@/components/change-password-card";
 
 export const Route = createFileRoute("/app/perfil")({
   ssr: false,
