@@ -33,7 +33,7 @@ export function ChangePasswordCard() {
       if (signInErr) throw new Error("Senha atual incorreta.");
 
       const { error } = await supabase.auth.updateUser({ password: next });
-      if (error) throw new Error(translateAuthError(error));
+      if (error) throw new Error(translateAuthError(error.message));
     },
     onSuccess: () => {
       toast.success("Senha alterada com sucesso");
