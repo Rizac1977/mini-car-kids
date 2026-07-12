@@ -127,8 +127,9 @@ export function AppShell({ children, title }: { children: ReactNode; title?: str
       </a>
 
       {/* Bottom nav mobile */}
-      <nav className="lg:hidden fixed bottom-0 inset-x-0 z-40 bg-card border-t shadow-[0_-4px_16px_oklch(0_0_0/0.05)]">
+      <nav className="lg:hidden fixed bottom-0 inset-x-0 z-40 bg-card border-t shadow-[0_-4px_16px_oklch(0_0_0/0.05)] safe-bottom">
         <div className="grid grid-cols-5 h-16">
+
           {mobileNav.map((item) => {
             const Icon = item.icon;
             const active = isActive(item.to, item.exact);
