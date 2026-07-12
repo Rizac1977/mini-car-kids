@@ -233,6 +233,8 @@ function PerfilPage() {
           </Card>
         </Link>
 
+        <ChangePasswordCard />
+
         {!editing && (
           <Button variant="outline" className="w-full h-12" onClick={() => setEditing(true)}>
             Editar perfil
