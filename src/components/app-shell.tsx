@@ -90,7 +90,7 @@ export function AppShell({ children, title }: { children: ReactNode; title?: str
 
       {/* Conteúdo */}
       <div className="lg:pl-64">
-        <header className="sticky top-0 z-30 bg-background/90 backdrop-blur border-b px-4 py-3 lg:px-8 lg:py-4">
+        <header className="sticky top-0 z-30 bg-background/90 backdrop-blur border-b px-4 py-3 lg:px-8 lg:py-4 safe-top">
           <div className="flex items-center justify-between gap-2">
             <div className="min-w-0">
               <div className="text-xs text-muted-foreground lg:hidden">MiniCar Gestão</div>
@@ -109,7 +109,7 @@ export function AppShell({ children, title }: { children: ReactNode; title?: str
             </button>
           </div>
         </header>
-        <main className="px-4 lg:px-8 pt-4 pb-28 lg:pb-10 max-w-6xl mx-auto">{children}</main>
+        <main className="px-4 lg:px-8 pt-4 pb-32 lg:pb-10 max-w-6xl mx-auto">{children}</main>
       </div>
 
       {/* Botão flutuante de suporte WhatsApp */}
@@ -118,7 +118,7 @@ export function AppShell({ children, title }: { children: ReactNode; title?: str
         target="_blank"
         rel="noopener noreferrer"
         aria-label="Falar com o suporte no WhatsApp"
-        className="fixed z-50 right-4 bottom-20 lg:bottom-6 h-14 w-14 rounded-full grid place-items-center text-white shadow-[var(--shadow-elevated)] hover:scale-105 transition-transform"
+        className="fixed z-50 right-4 bottom-24 lg:bottom-6 h-14 w-14 rounded-full grid place-items-center text-white shadow-[var(--shadow-elevated)] hover:scale-105 transition-transform"
         style={{ backgroundColor: "#25D366" }}
       >
         <svg viewBox="0 0 32 32" className="h-7 w-7" fill="currentColor" aria-hidden="true">
@@ -127,8 +127,9 @@ export function AppShell({ children, title }: { children: ReactNode; title?: str
       </a>
 
       {/* Bottom nav mobile */}
-      <nav className="lg:hidden fixed bottom-0 inset-x-0 z-40 bg-card border-t shadow-[0_-4px_16px_oklch(0_0_0/0.05)]">
+      <nav className="lg:hidden fixed bottom-0 inset-x-0 z-40 bg-card border-t shadow-[0_-4px_16px_oklch(0_0_0/0.05)] safe-bottom">
         <div className="grid grid-cols-5 h-16">
+
           {mobileNav.map((item) => {
             const Icon = item.icon;
             const active = isActive(item.to, item.exact);
@@ -137,12 +138,12 @@ export function AppShell({ children, title }: { children: ReactNode; title?: str
                 <Link
                   key={item.to}
                   to={item.to}
-                  className="flex flex-col items-center justify-center -mt-6"
+                  className="flex flex-col items-center justify-center -mt-6 px-1 min-w-0"
                 >
-                  <div className="h-14 w-14 rounded-2xl bg-primary text-primary-foreground grid place-items-center shadow-[var(--shadow-elevated)]">
+                  <div className="h-14 w-14 rounded-2xl bg-primary text-primary-foreground grid place-items-center shadow-[var(--shadow-elevated)] shrink-0">
                     <Icon className="h-7 w-7" />
                   </div>
-                  <span className="text-[10px] mt-1 font-medium">{item.label}</span>
+                  <span className="text-[10px] mt-1 font-medium truncate max-w-full">{item.label}</span>
                 </Link>
               );
             }
@@ -151,12 +152,12 @@ export function AppShell({ children, title }: { children: ReactNode; title?: str
                 key={item.to}
                 to={item.to}
                 className={cn(
-                  "flex flex-col items-center justify-center gap-1 text-[11px]",
+                  "flex flex-col items-center justify-center gap-1 text-[10px] px-1 min-w-0",
                   active ? "text-primary font-semibold" : "text-muted-foreground"
                 )}
               >
-                <Icon className="h-5 w-5" />
-                {item.label}
+                <Icon className="h-5 w-5 shrink-0" />
+                <span className="truncate max-w-full">{item.label}</span>
               </Link>
             );
           })}
