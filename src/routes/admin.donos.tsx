@@ -1,4 +1,4 @@
-import { createFileRoute, Link } from "@tanstack/react-router";
+import { createFileRoute, useNavigate } from "@tanstack/react-router";
 import { useMemo, useState } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
@@ -51,6 +51,7 @@ const filters = [
 ] as const;
 
 function DonosPage() {
+  const navigate = useNavigate();
   const [filter, setFilter] = useState<(typeof filters)[number]["key"]>("todos");
   const [search, setSearch] = useState("");
   const [stateFilter, setStateFilter] = useState("");
@@ -268,12 +269,22 @@ function DonosPage() {
         ) : (
           <div className="space-y-3">
             {rows.map((o) => (
-              <Card key={o.id} className="overflow-hidden">
-                <Link
-                  to="/admin/donos/$id"
-                  params={{ id: o.user_id }}
-                  className="block p-4 hover:bg-muted/40 transition-colors cursor-pointer"
-                >
+              <Card
+                key={o.id}
+                role="button"
+                tabIndex={0}
+                onClick={() =>
+                  navigate({ to: "/admin/donos/$id", params: { id: o.user_id } })
+                }
+                onKeyDown={(e) => {
+                  if (e.key === "Enter" || e.key === " ") {
+                    e.preventDefault();
+                    navigate({ to: "/admin/donos/$id", params: { id: o.user_id } });
+                  }
+                }}
+                className="overflow-hidden cursor-pointer hover:bg-muted/40 transition-colors focus:outline-none focus:ring-2 focus:ring-ring"
+              >
+                <div className="p-4">
                   <div className="flex items-center gap-3">
                     <div className="h-11 w-11 rounded-full bg-primary text-primary-foreground grid place-items-center font-bold shrink-0">
                       {o.full_name
@@ -306,14 +317,20 @@ function DonosPage() {
                     </div>
                     <ChevronRight className="h-5 w-5 text-muted-foreground shrink-0" />
                   </div>
-                </Link>
+                </div>
                 {o.account_status === "pendente" && (
-                  <div className="grid grid-cols-2 gap-2 px-4 pb-4 pt-3 border-t">
+                  <div
+                    className="grid grid-cols-2 gap-2 px-4 pb-4 pt-3 border-t"
+                    onClick={(e) => e.stopPropagation()}
+                  >
                     <Button
                       variant="outline"
                       className="h-10 gap-1 text-success border-success/40"
                       disabled={decide.isPending}
-                      onClick={() => setApproveTarget({ userId: o.user_id, name: o.full_name })}
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        setApproveTarget({ userId: o.user_id, name: o.full_name });
+                      }}
                     >
                       <CheckCircle2 className="h-4 w-4" /> Aprovar
                     </Button>
@@ -321,7 +338,10 @@ function DonosPage() {
                       variant="outline"
                       className="h-10 gap-1 text-destructive border-destructive/40"
                       disabled={decide.isPending}
-                      onClick={() => decide.mutate({ userId: o.user_id, next: "recusado" })}
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        decide.mutate({ userId: o.user_id, next: "recusado" });
+                      }}
                     >
                       <XCircle className="h-4 w-4" /> Recusar
                     </Button>
