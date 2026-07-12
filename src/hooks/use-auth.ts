@@ -24,8 +24,17 @@ export function useAuth() {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    const { data: sub } = supabase.auth.onAuthStateChange((_event, s) => {
-      setSession(s);
+    // Filtra apenas transições de identidade — ignora TOKEN_REFRESHED
+    // (dispara ~1x/hora e no foco da aba) e INITIAL_SESSION (a cada mount),
+    // evitando re-renders e refetches desnecessários.
+    const { data: sub } = supabase.auth.onAuthStateChange((event, s) => {
+      if (
+        event === "SIGNED_IN" ||
+        event === "SIGNED_OUT" ||
+        event === "USER_UPDATED"
+      ) {
+        setSession(s);
+      }
     });
     supabase.auth.getSession().then(({ data }) => {
       setSession(data.session);
@@ -51,15 +60,6 @@ export async function fetchProfileAndRole(userId: string): Promise<{
     : roles.some((r) => r.role === "vehicle_owner")
       ? "vehicle_owner"
       : null;
-  // eslint-disable-next-line no-console
-  console.log("[auth] fetchProfileAndRole", {
-    userId,
-    profile: profileRes.data,
-    profileErr: profileRes.error?.message,
-    roles,
-    rolesErr: rolesRes.error?.message,
-    resolvedRole: role,
-  });
   return {
     profile: (profileRes.data as Profile | null) ?? null,
     role,
