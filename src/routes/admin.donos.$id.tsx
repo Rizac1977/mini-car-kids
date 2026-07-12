@@ -874,7 +874,7 @@ function RevenueBreakdownCard({ rentals }: { rentals: Rental[] }) {
                   background: "hsl(var(--card))",
                 }}
                 labelStyle={{ fontWeight: 600 }}
-                formatter={(v: number, _n, p) => [
+                formatter={(v: number | string, _n: string, p: { payload: { count: number } }) => [
                   `${currency(Number(v))} · ${p.payload.count} locaç${p.payload.count === 1 ? "ão" : "ões"}`,
                   "Faturamento",
                 ]}
