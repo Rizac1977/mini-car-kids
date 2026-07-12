@@ -32,6 +32,7 @@ import type { AccountStatus } from "@/hooks/use-auth";
 import { AdminShell } from "./admin.index";
 import { ApproveOwnerDialog } from "@/components/approve-owner-dialog";
 import { ManageSubscriptionDialog } from "@/components/manage-subscription-dialog";
+import { Bar, BarChart, CartesianGrid, ResponsiveContainer, Tooltip, XAxis, YAxis } from "recharts";
 
 export const Route = createFileRoute("/admin/donos/$id")({
   head: () => ({
@@ -801,7 +802,7 @@ function RevenueBreakdownCard({ rentals }: { rentals: Rental[] }) {
 
   const totalPeriodo = buckets.reduce((s, b) => s + b.total, 0);
   const countPeriodo = buckets.reduce((s, b) => s + b.count, 0);
-  const withData = [...buckets].reverse().filter((b) => b.count > 0);
+  
 
   const tabs: { id: typeof period; label: string }[] = [
     { id: "diario", label: "Diário" },
@@ -841,23 +842,49 @@ function RevenueBreakdownCard({ rentals }: { rentals: Rental[] }) {
         </div>
       </div>
 
-      {withData.length === 0 ? (
+      {countPeriodo === 0 ? (
         <div className="text-xs text-muted-foreground text-center py-4">
           Nenhuma locação finalizada no período.
         </div>
       ) : (
-        <div className="max-h-64 overflow-y-auto border-t pt-2 space-y-1.5">
-          {withData.map((b, i) => (
-            <div key={i} className="flex items-center justify-between text-sm">
-              <span className="text-muted-foreground">{b.label}</span>
-              <div className="text-right">
-                <div className="font-semibold">{currency(b.total)}</div>
-                <div className="text-[10px] text-muted-foreground">
-                  {b.count} locaç{b.count === 1 ? "ão" : "ões"}
-                </div>
-              </div>
-            </div>
-          ))}
+        <div className="h-56 -mx-2">
+          <ResponsiveContainer width="100%" height="100%">
+            <BarChart data={buckets} margin={{ top: 8, right: 8, left: 0, bottom: 4 }}>
+              <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--border))" vertical={false} />
+              <XAxis
+                dataKey="label"
+                tick={{ fontSize: 10 }}
+                interval="preserveStartEnd"
+                axisLine={false}
+                tickLine={false}
+              />
+              <YAxis
+                tick={{ fontSize: 10 }}
+                axisLine={false}
+                tickLine={false}
+                width={44}
+                tickFormatter={(v) => (v >= 1000 ? `${Math.round(v / 100) / 10}k` : String(v))}
+              />
+              <Tooltip
+                cursor={{ fill: "hsl(var(--muted) / 0.4)" }}
+                contentStyle={{
+                  fontSize: 12,
+                  borderRadius: 8,
+                  border: "1px solid hsl(var(--border))",
+                  background: "hsl(var(--card))",
+                }}
+                labelStyle={{ fontWeight: 600 }}
+                formatter={(v: number | string, _n, p) => {
+                  const count = (p?.payload as { count?: number } | undefined)?.count ?? 0;
+                  return [
+                    `${currency(Number(v))} · ${count} locaç${count === 1 ? "ão" : "ões"}`,
+                    "Faturamento",
+                  ];
+                }}
+              />
+              <Bar dataKey="total" fill="hsl(var(--primary))" radius={[4, 4, 0, 0]} />
+            </BarChart>
+          </ResponsiveContainer>
         </div>
       )}
     </Card>
