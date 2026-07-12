@@ -874,10 +874,13 @@ function RevenueBreakdownCard({ rentals }: { rentals: Rental[] }) {
                   background: "hsl(var(--card))",
                 }}
                 labelStyle={{ fontWeight: 600 }}
-                formatter={(v: number | string, _n: string, p: { payload: { count: number } }) => [
-                  `${currency(Number(v))} · ${p.payload.count} locaç${p.payload.count === 1 ? "ão" : "ões"}`,
-                  "Faturamento",
-                ]}
+                formatter={(v: number | string, _n, p) => {
+                  const count = (p?.payload as { count?: number } | undefined)?.count ?? 0;
+                  return [
+                    `${currency(Number(v))} · ${count} locaç${count === 1 ? "ão" : "ões"}`,
+                    "Faturamento",
+                  ];
+                }}
               />
               <Bar dataKey="total" fill="hsl(var(--primary))" radius={[4, 4, 0, 0]} />
             </BarChart>
