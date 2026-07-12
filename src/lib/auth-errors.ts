@@ -10,6 +10,12 @@ export function translateAuthError(message: string): string {
     return "Esta senha é muito comum e foi encontrada em vazamentos públicos. Escolha uma senha mais forte (misture letras maiúsculas, minúsculas, números e símbolos).";
   if (m.includes("password should be at least"))
     return "A senha deve ter pelo menos 8 caracteres.";
+  if (m.includes("new password should be different") || m.includes("same_password") || m.includes("same as the old"))
+    return "A nova senha deve ser diferente da senha atual.";
+  if (m.includes("token has expired") || m.includes("otp_expired") || m.includes("invalid or has expired") || m.includes("one-time token not found") || m.includes("access_denied"))
+    return "O link de recuperação expirou ou já foi utilizado. Solicite um novo link.";
+  if (m.includes("auth session missing") || m.includes("session_not_found"))
+    return "Sua sessão de recuperação expirou. Solicite um novo link.";
   if (m.includes("unable to validate email") || m.includes("invalid email") || m.includes("invalid format"))
     return "E-mail inválido. Verifique e tente novamente.";
   if (m.includes("signup") && m.includes("disabled"))
