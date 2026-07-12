@@ -58,7 +58,10 @@ function RedefinirPage() {
       return;
     }
     setDone(true);
-    setTimeout(() => navigate({ to: "/login" }), 1600);
+    await supabase.auth.signOut();
+    setTimeout(() => {
+      navigate({ to: "/login", replace: true });
+    }, 1200);
   };
 
   return (
