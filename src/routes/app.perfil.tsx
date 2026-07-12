@@ -153,7 +153,7 @@ function PerfilPage() {
           <div className="relative mb-3">
             <div className="h-20 w-20 rounded-full bg-primary text-primary-foreground grid place-items-center text-2xl font-bold overflow-hidden">
               {photoUrl ? (
-                <img src={photoUrl} alt="Foto do perfil" className="h-full w-full object-cover" />
+                <img loading="lazy" decoding="async" src={photoUrl} alt="Foto do perfil" className="h-full w-full object-cover" />
               ) : initials}
             </div>
             <button

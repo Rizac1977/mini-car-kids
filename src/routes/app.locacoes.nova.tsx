@@ -222,7 +222,7 @@ function VehicleTile({ id, name, photoPath, selected, onSelect }: {
       }`}
     >
       {src ? (
-        <img src={src} alt={name} className="h-16 w-16 rounded-lg object-cover mb-1" />
+        <img loading="lazy" decoding="async" src={src} alt={name} className="h-16 w-16 rounded-lg object-cover mb-1" />
       ) : (
         <div className="h-16 w-16 rounded-lg bg-muted grid place-items-center text-3xl mb-1">🚗</div>
       )}

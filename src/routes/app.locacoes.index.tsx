@@ -609,6 +609,6 @@ function Row({ label, value, bold }: { label: string; value: string; bold?: bool
 
 function VehiclePhoto({ path, name, size }: { path: string | null; name: string; size: string }) {
   const src = useVehiclePhotoUrl(path);
-  if (src) return <img src={src} alt={name} className={`${size} object-cover shrink-0`} />;
+  if (src) return <img loading="lazy" decoding="async" src={src} alt={name} className={`${size} object-cover shrink-0`} />;
   return <div className={`${size} bg-muted grid place-items-center text-3xl shrink-0`}>🚗</div>;
 }
