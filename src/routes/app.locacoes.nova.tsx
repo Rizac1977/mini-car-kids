@@ -2,6 +2,8 @@ import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
 import { AppShell } from "@/components/app-shell";
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
 import { currency } from "@/lib/mock-data";
 import { useState } from "react";
 import { Check, ArrowLeft, Loader2 } from "lucide-react";
@@ -11,13 +13,9 @@ import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
 import { useVehiclePhotoUrl } from "@/hooks/use-vehicle-photo";
 
-const packages = [
-  { id: "p1", minutes: 5, price: 8 },
-  { id: "p2", minutes: 10, price: 15 },
-  { id: "p3", minutes: 15, price: 22 },
-  { id: "p4", minutes: 20, price: 28 },
-  { id: "p5", minutes: 30, price: 40 },
-];
+
+const quickMinutes = [5, 10, 15, 20, 30];
+
 
 export const Route = createFileRoute("/app/locacoes/nova")({
   head: () => ({
@@ -35,7 +33,8 @@ function NovaLocacaoPage() {
   const qc = useQueryClient();
 
   const [vehicleId, setVehicleId] = useState<string | null>(null);
-  const [packageId, setPackageId] = useState<string | null>(null);
+  const [minutes, setMinutes] = useState<string>("");
+  const [price, setPrice] = useState<string>("");
 
   const { data: availableVehicles = [] } = useQuery({
     queryKey: ["vehicles-disp", user?.id],
@@ -52,18 +51,21 @@ function NovaLocacaoPage() {
     },
   });
 
-  const selectedPkg = packages.find((p) => p.id === packageId);
+  const minutesNum = Number(minutes);
+  const priceNum = Number(price.replace(",", "."));
+  const isValid = vehicleId && minutesNum > 0 && priceNum >= 0 && !Number.isNaN(priceNum);
+
 
   const startRental = useMutation({
     mutationFn: async () => {
-      if (!user || !vehicleId || !selectedPkg) throw new Error("Dados incompletos");
+      if (!user || !vehicleId || !isValid) throw new Error("Dados incompletos");
       const startedAt = new Date();
-      const plannedEnd = new Date(startedAt.getTime() + selectedPkg.minutes * 60000);
+      const plannedEnd = new Date(startedAt.getTime() + minutesNum * 60000);
       const { error } = await supabase.from("rentals").insert({
         user_id: user.id,
         vehicle_id: vehicleId,
-        planned_minutes: selectedPkg.minutes,
-        amount: selectedPkg.price,
+        planned_minutes: minutesNum,
+        amount: priceNum,
         started_at: startedAt.toISOString(),
         planned_end_at: plannedEnd.toISOString(),
         status: "ativa",
@@ -109,31 +111,64 @@ function NovaLocacaoPage() {
         </Section>
 
         {vehicleId && (
-          <Section step="2" title="Escolha o tempo">
-            <div className="grid grid-cols-2 gap-2">
-              {packages.map((p) => (
-                <button
-                  key={p.id}
-                  onClick={() => setPackageId(p.id)}
-                  className={`p-4 rounded-xl border-2 transition-all ${
-                    packageId === p.id ? "border-primary bg-primary-soft" : "border-border bg-card"
-                  }`}
-                >
-                  <div className="text-lg font-bold">{p.minutes} min</div>
-                  <div className="text-sm text-primary font-semibold">{currency(p.price)}</div>
-                </button>
-              ))}
+          <Section step="2" title="Defina tempo e valor">
+            <div className="space-y-4">
+              <div>
+                <Label className="text-xs text-muted-foreground mb-2 block">Sugestões rápidas (min)</Label>
+                <div className="grid grid-cols-5 gap-2">
+                  {quickMinutes.map((m) => (
+                    <button
+                      key={m}
+                      type="button"
+                      onClick={() => setMinutes(String(m))}
+                      className={`py-2 rounded-lg border-2 text-sm font-semibold transition-all ${
+                        minutes === String(m) ? "border-primary bg-primary-soft" : "border-border bg-card"
+                      }`}
+                    >
+                      {m}
+                    </button>
+                  ))}
+                </div>
+              </div>
+
+              <div className="grid grid-cols-2 gap-3">
+                <div>
+                  <Label htmlFor="min" className="text-sm">Tempo (min)</Label>
+                  <Input
+                    id="min"
+                    type="number"
+                    inputMode="numeric"
+                    min={1}
+                    placeholder="Ex: 10"
+                    value={minutes}
+                    onChange={(e) => setMinutes(e.target.value)}
+                    className="h-12 text-base mt-1"
+                  />
+                </div>
+                <div>
+                  <Label htmlFor="val" className="text-sm">Valor (R$)</Label>
+                  <Input
+                    id="val"
+                    type="text"
+                    inputMode="decimal"
+                    placeholder="Ex: 15,00"
+                    value={price}
+                    onChange={(e) => setPrice(e.target.value)}
+                    className="h-12 text-base mt-1"
+                  />
+                </div>
+              </div>
             </div>
           </Section>
         )}
 
-        {packageId && (
+        {isValid && (
           <Card className="p-4 bg-primary-soft border-primary/30">
             <div className="text-sm text-muted-foreground mb-2">Resumo</div>
             <div className="space-y-1 text-sm">
               <Row k="Veículo" v={availableVehicles.find((v) => v.id === vehicleId)?.name ?? ""} />
-              <Row k="Tempo" v={`${selectedPkg?.minutes} minutos`} />
-              <Row k="Valor" v={currency(selectedPkg?.price ?? 0)} highlight />
+              <Row k="Tempo" v={`${minutesNum} minutos`} />
+              <Row k="Valor" v={currency(priceNum)} highlight />
             </div>
             <Button
               className="w-full h-14 mt-4 text-base font-bold gap-2"
@@ -146,6 +181,7 @@ function NovaLocacaoPage() {
           </Card>
         )}
       </div>
+
     </AppShell>
   );
 }
