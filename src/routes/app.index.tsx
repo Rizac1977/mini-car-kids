@@ -352,12 +352,12 @@ function DashboardPage() {
 
 function TopVehiclePhoto({ path, name }: { path: string | null; name: string }) {
   const src = useVehiclePhotoUrl(path);
-  if (src) return <img src={src} alt={name} className="h-12 w-12 rounded-xl object-cover" />;
+  if (src) return <img loading="lazy" decoding="async" src={src} alt={name} className="h-12 w-12 rounded-xl object-cover" />;
   return <div className="h-12 w-12 rounded-xl bg-accent/20 grid place-items-center text-2xl">🏎️</div>;
 }
 
 function ActiveVehiclePhoto({ path, name }: { path: string | null; name: string }) {
   const src = useVehiclePhotoUrl(path);
-  if (src) return <img src={src} alt={name} className="h-12 w-12 rounded-xl object-cover" />;
+  if (src) return <img loading="lazy" decoding="async" src={src} alt={name} className="h-12 w-12 rounded-xl object-cover" />;
   return <div className="h-12 w-12 rounded-xl bg-muted grid place-items-center text-2xl">🚗</div>;
 }
