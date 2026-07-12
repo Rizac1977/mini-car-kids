@@ -2,6 +2,8 @@ import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
 import { AppShell } from "@/components/app-shell";
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
 import { currency } from "@/lib/mock-data";
 import { useState } from "react";
 import { Check, ArrowLeft, Loader2 } from "lucide-react";
@@ -10,6 +12,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
 import { useVehiclePhotoUrl } from "@/hooks/use-vehicle-photo";
+
 
 const quickMinutes = [5, 10, 15, 20, 30];
 
