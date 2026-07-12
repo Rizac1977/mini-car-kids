@@ -19,6 +19,7 @@ import {
   Loader2,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
+import { ChangePasswordCard } from "@/components/change-password-card";
 
 export const Route = createFileRoute("/admin/")({
   head: () => ({
@@ -264,6 +265,8 @@ function AdminDashboard() {
             <ArrowUpRight className="h-5 w-5" />
           </Card>
         </Link>
+
+        <ChangePasswordCard />
       </div>
     </AdminShell>
   );

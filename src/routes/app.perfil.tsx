@@ -14,6 +14,7 @@ import { Label } from "@/components/ui/label";
 import { Badge } from "@/components/ui/badge";
 import { supabase } from "@/integrations/supabase/client";
 import { signOut, type Profile } from "@/hooks/use-auth";
+import { ChangePasswordCard } from "@/components/change-password-card";
 
 export const Route = createFileRoute("/app/perfil")({
   ssr: false,
@@ -231,6 +232,8 @@ function PerfilPage() {
             <ChevronRight className="h-5 w-5 text-muted-foreground" />
           </Card>
         </Link>
+
+        <ChangePasswordCard />
 
         {!editing && (
           <Button variant="outline" className="w-full h-12" onClick={() => setEditing(true)}>
