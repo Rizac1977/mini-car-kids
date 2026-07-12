@@ -73,6 +73,17 @@ function LoginPage() {
           Entre para acompanhar suas locações
         </p>
 
+        {errorMsg ? (
+          <div
+            role="alert"
+            aria-live="polite"
+            className="mb-4 flex items-start gap-2 rounded-md border border-destructive/40 bg-destructive/10 px-3 py-2 text-sm text-destructive"
+          >
+            <AlertCircle className="h-4 w-4 mt-0.5 shrink-0" />
+            <span>{errorMsg}</span>
+          </div>
+        ) : null}
+
         <form className="space-y-4" onSubmit={handleSubmit}>
           <div className="space-y-1.5">
             <Label htmlFor="email">E-mail</Label>
