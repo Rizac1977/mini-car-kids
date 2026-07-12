@@ -11,13 +11,8 @@ import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
 import { useVehiclePhotoUrl } from "@/hooks/use-vehicle-photo";
 
-const packages = [
-  { id: "p1", minutes: 5, price: 8 },
-  { id: "p2", minutes: 10, price: 15 },
-  { id: "p3", minutes: 15, price: 22 },
-  { id: "p4", minutes: 20, price: 28 },
-  { id: "p5", minutes: 30, price: 40 },
-];
+const quickMinutes = [5, 10, 15, 20, 30];
+
 
 export const Route = createFileRoute("/app/locacoes/nova")({
   head: () => ({
