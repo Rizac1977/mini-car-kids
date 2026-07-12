@@ -1,12 +1,13 @@
 import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
 import { useEffect, useState } from "react";
 import { toast } from "sonner";
-import { Loader2, Eye, EyeOff, CheckCircle2 } from "lucide-react";
+import { Loader2, Eye, EyeOff, CheckCircle2, AlertCircle } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { BrandLogo } from "@/components/brand-logo";
 import { supabase } from "@/integrations/supabase/client";
+import { translateAuthError } from "@/lib/auth-errors";
 
 export const Route = createFileRoute("/redefinir-senha")({
   ssr: false,
@@ -21,43 +22,80 @@ export const Route = createFileRoute("/redefinir-senha")({
 
 function RedefinirPage() {
   const [validRecovery, setValidRecovery] = useState<boolean | null>(null);
+  const [linkError, setLinkError] = useState<string | null>(null);
   const [password, setPassword] = useState("");
   const [password2, setPassword2] = useState("");
   const [showPass, setShowPass] = useState(false);
   const [loading, setLoading] = useState(false);
+  const [errorMsg, setErrorMsg] = useState<string | null>(null);
   const [done, setDone] = useState(false);
   const navigate = useNavigate();
 
   useEffect(() => {
-    // Supabase preenche a sessão a partir do hash (#access_token=...&type=recovery)
+    // 1) Verifica erros na URL (hash ou query) — link expirado/inválido
+    const hash = new URLSearchParams(window.location.hash.replace(/^#/, ""));
+    const qs = new URLSearchParams(window.location.search);
+    const urlErr =
+      hash.get("error_description") ||
+      hash.get("error") ||
+      qs.get("error_description") ||
+      qs.get("error");
+    if (urlErr) {
+      setValidRecovery(false);
+      setLinkError(translateAuthError(urlErr));
+      return;
+    }
+
+    // 2) Escuta o evento PASSWORD_RECOVERY do Supabase
     const { data: sub } = supabase.auth.onAuthStateChange((event) => {
-      if (event === "PASSWORD_RECOVERY") setValidRecovery(true);
+      if (event === "PASSWORD_RECOVERY" || event === "SIGNED_IN") setValidRecovery(true);
     });
+
+    // 3) Também checa sessão existente (Supabase auto-troca o code/hash)
     supabase.auth.getSession().then(({ data }) => {
       if (data.session) setValidRecovery(true);
-      else setTimeout(() => setValidRecovery((v) => v ?? false), 800);
     });
-    return () => sub.subscription.unsubscribe();
+
+    // 4) Timeout de segurança
+    const t = setTimeout(() => setValidRecovery((v) => v ?? false), 1500);
+    return () => {
+      clearTimeout(t);
+      sub.subscription.unsubscribe();
+    };
   }, []);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    setErrorMsg(null);
     if (password.length < 8) {
-      toast.error("A senha deve ter pelo menos 8 caracteres");
+      setErrorMsg("A senha deve ter pelo menos 8 caracteres.");
       return;
     }
     if (password !== password2) {
-      toast.error("As senhas não coincidem");
+      setErrorMsg("As senhas não coincidem.");
       return;
     }
     setLoading(true);
+
+    // Garante que ainda há sessão de recuperação
+    const { data: sess } = await supabase.auth.getSession();
+    if (!sess.session) {
+      setLoading(false);
+      setValidRecovery(false);
+      setLinkError("Sua sessão de recuperação expirou. Solicite um novo link.");
+      return;
+    }
+
     const { error } = await supabase.auth.updateUser({ password });
     setLoading(false);
     if (error) {
-      toast.error(error.message);
+      const msg = translateAuthError(error.message);
+      setErrorMsg(msg);
+      toast.error(msg);
       return;
     }
     setDone(true);
+    toast.success("Senha atualizada com sucesso");
     await supabase.auth.signOut();
     setTimeout(() => {
       navigate({ to: "/login", replace: true });
@@ -80,13 +118,21 @@ function RedefinirPage() {
           </div>
         ) : validRecovery === false ? (
           <div className="text-center space-y-3">
+            <div className="inline-flex h-14 w-14 rounded-full bg-destructive/15 text-destructive items-center justify-center">
+              <AlertCircle className="h-7 w-7" />
+            </div>
             <h1 className="text-xl font-bold">Link inválido ou expirado</h1>
             <p className="text-sm text-muted-foreground">
-              Solicite um novo link de recuperação.
+              {linkError ?? "Solicite um novo link de recuperação para continuar."}
             </p>
             <Link to="/recuperar-senha">
               <Button className="mt-3 h-12">Pedir novo link</Button>
             </Link>
+            <div className="pt-2">
+              <Link to="/login" className="text-sm text-primary font-medium">
+                Voltar para login
+              </Link>
+            </div>
           </div>
         ) : validRecovery === null ? (
           <div className="text-center text-muted-foreground text-sm">
@@ -96,8 +142,20 @@ function RedefinirPage() {
           <>
             <h1 className="text-2xl font-bold mb-1">Nova senha</h1>
             <p className="text-sm text-muted-foreground mb-6">
-              Escolha uma senha com pelo menos 8 caracteres.
+              Escolha uma senha com pelo menos 8 caracteres, diferente da anterior.
             </p>
+
+            {errorMsg ? (
+              <div
+                role="alert"
+                aria-live="polite"
+                className="mb-4 flex items-start gap-2 rounded-md border border-destructive/40 bg-destructive/10 px-3 py-2 text-sm text-destructive"
+              >
+                <AlertCircle className="h-4 w-4 mt-0.5 shrink-0" />
+                <span>{errorMsg}</span>
+              </div>
+            ) : null}
+
             <form className="space-y-4" onSubmit={handleSubmit}>
               <div className="space-y-1.5">
                 <Label>Nova senha</Label>
@@ -106,13 +164,15 @@ function RedefinirPage() {
                     type={showPass ? "text" : "password"}
                     className="h-12 pr-12"
                     value={password}
-                    onChange={(e) => setPassword(e.target.value)}
+                    onChange={(e) => { setPassword(e.target.value); if (errorMsg) setErrorMsg(null); }}
+                    autoComplete="new-password"
                     required
                   />
                   <button
                     type="button"
                     onClick={() => setShowPass((s) => !s)}
                     className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground"
+                    aria-label={showPass ? "Ocultar senha" : "Mostrar senha"}
                   >
                     {showPass ? <EyeOff className="h-5 w-5" /> : <Eye className="h-5 w-5" />}
                   </button>
@@ -124,7 +184,8 @@ function RedefinirPage() {
                   type={showPass ? "text" : "password"}
                   className="h-12"
                   value={password2}
-                  onChange={(e) => setPassword2(e.target.value)}
+                  onChange={(e) => { setPassword2(e.target.value); if (errorMsg) setErrorMsg(null); }}
+                  autoComplete="new-password"
                   required
                 />
               </div>
