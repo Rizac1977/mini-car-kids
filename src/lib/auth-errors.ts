@@ -1,7 +1,8 @@
 // Traduz mensagens comuns do Supabase Auth para pt-BR
 export function translateAuthError(message: string): string {
   const m = message.toLowerCase();
-  if (m.includes("invalid login credentials")) return "E-mail ou senha inválidos.";
+  if (m.includes("invalid login credentials") || m.includes("invalid_credentials"))
+    return "E-mail ou senha incorretos. Verifique os dados e tente novamente. Se esqueceu a senha, use \"Esqueci minha senha\".";
   if (m.includes("email not confirmed")) return "Confirme seu e-mail antes de entrar.";
   if (m.includes("user already registered") || m.includes("already been registered"))
     return "Este e-mail já está cadastrado. Faça login ou recupere sua senha.";
