@@ -319,12 +319,18 @@ function DonosPage() {
                   </div>
                 </div>
                 {o.account_status === "pendente" && (
-                  <div className="grid grid-cols-2 gap-2 px-4 pb-4 pt-3 border-t">
+                  <div
+                    className="grid grid-cols-2 gap-2 px-4 pb-4 pt-3 border-t"
+                    onClick={(e) => e.stopPropagation()}
+                  >
                     <Button
                       variant="outline"
                       className="h-10 gap-1 text-success border-success/40"
                       disabled={decide.isPending}
-                      onClick={() => setApproveTarget({ userId: o.user_id, name: o.full_name })}
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        setApproveTarget({ userId: o.user_id, name: o.full_name });
+                      }}
                     >
                       <CheckCircle2 className="h-4 w-4" /> Aprovar
                     </Button>
@@ -332,7 +338,10 @@ function DonosPage() {
                       variant="outline"
                       className="h-10 gap-1 text-destructive border-destructive/40"
                       disabled={decide.isPending}
-                      onClick={() => decide.mutate({ userId: o.user_id, next: "recusado" })}
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        decide.mutate({ userId: o.user_id, next: "recusado" });
+                      }}
                     >
                       <XCircle className="h-4 w-4" /> Recusar
                     </Button>
