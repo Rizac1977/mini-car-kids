@@ -108,7 +108,7 @@ function LoginPage() {
                 placeholder="••••••••"
                 className="h-12 pr-12"
                 value={password}
-                onChange={(e) => setPassword(e.target.value)}
+                onChange={(e) => { setPassword(e.target.value); if (errorMsg) setErrorMsg(null); }}
                 required
               />
               <button
