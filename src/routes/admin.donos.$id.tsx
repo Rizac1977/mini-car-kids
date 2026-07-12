@@ -547,33 +547,8 @@ function DonoDetailPage() {
             )}
           </Card>
 
-          <Card className="p-4 space-y-2">
-            <div className="font-semibold text-sm flex items-center gap-2">
-              <Timer className="h-4 w-4" /> Últimas locações
-            </div>
-            {(rentals ?? []).length === 0 ? (
-              <div className="text-xs text-muted-foreground">Nenhuma locação registrada.</div>
-            ) : (
-              <div className="space-y-2">
-                {(rentals ?? []).slice(0, 5).map((r) => (
-                  <div key={r.id} className="flex items-center justify-between text-sm">
-                    <div className="min-w-0">
-                      <div className="font-medium capitalize">{r.status}</div>
-                      <div className="text-xs text-muted-foreground">
-                        {new Date(r.started_at).toLocaleString("pt-BR")}
-                      </div>
-                    </div>
-                    <div className="text-right">
-                      <div className="font-semibold">{currency(Number(r.amount ?? 0))}</div>
-                      <div className="text-xs text-muted-foreground">
-                        {r.planned_minutes ?? 0} min
-                      </div>
-                    </div>
-                  </div>
-                ))}
-              </div>
-            )}
-          </Card>
+          <RevenueBreakdownCard rentals={rentals ?? []} />
+
 
           <Card className="p-4 space-y-2">
             <div className="font-semibold text-sm">Observações administrativas</div>
