@@ -42,9 +42,17 @@ function LoginPage() {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setLoading(true);
+    setErrorMsg(null);
+    if (!email || !password) {
+      setErrorMsg("Preencha o e-mail e a senha para continuar.");
+      setLoading(false);
+      return;
+    }
     const { data, error } = await supabase.auth.signInWithPassword({ email, password });
     if (error) {
-      toast.error(translateAuthError(error.message));
+      const msg = translateAuthError(error.message);
+      setErrorMsg(msg);
+      toast.error(msg);
       setLoading(false);
       return;
     }
