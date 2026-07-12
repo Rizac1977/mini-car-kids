@@ -58,14 +58,14 @@ function NovaLocacaoPage() {
 
   const startRental = useMutation({
     mutationFn: async () => {
-      if (!user || !vehicleId || !selectedPkg) throw new Error("Dados incompletos");
+      if (!user || !vehicleId || !isValid) throw new Error("Dados incompletos");
       const startedAt = new Date();
-      const plannedEnd = new Date(startedAt.getTime() + selectedPkg.minutes * 60000);
+      const plannedEnd = new Date(startedAt.getTime() + minutesNum * 60000);
       const { error } = await supabase.from("rentals").insert({
         user_id: user.id,
         vehicle_id: vehicleId,
-        planned_minutes: selectedPkg.minutes,
-        amount: selectedPkg.price,
+        planned_minutes: minutesNum,
+        amount: priceNum,
         started_at: startedAt.toISOString(),
         planned_end_at: plannedEnd.toISOString(),
         status: "ativa",
@@ -111,31 +111,64 @@ function NovaLocacaoPage() {
         </Section>
 
         {vehicleId && (
-          <Section step="2" title="Escolha o tempo">
-            <div className="grid grid-cols-2 gap-2">
-              {packages.map((p) => (
-                <button
-                  key={p.id}
-                  onClick={() => setPackageId(p.id)}
-                  className={`p-4 rounded-xl border-2 transition-all ${
-                    packageId === p.id ? "border-primary bg-primary-soft" : "border-border bg-card"
-                  }`}
-                >
-                  <div className="text-lg font-bold">{p.minutes} min</div>
-                  <div className="text-sm text-primary font-semibold">{currency(p.price)}</div>
-                </button>
-              ))}
+          <Section step="2" title="Defina tempo e valor">
+            <div className="space-y-4">
+              <div>
+                <Label className="text-xs text-muted-foreground mb-2 block">Sugestões rápidas (min)</Label>
+                <div className="grid grid-cols-5 gap-2">
+                  {quickMinutes.map((m) => (
+                    <button
+                      key={m}
+                      type="button"
+                      onClick={() => setMinutes(String(m))}
+                      className={`py-2 rounded-lg border-2 text-sm font-semibold transition-all ${
+                        minutes === String(m) ? "border-primary bg-primary-soft" : "border-border bg-card"
+                      }`}
+                    >
+                      {m}
+                    </button>
+                  ))}
+                </div>
+              </div>
+
+              <div className="grid grid-cols-2 gap-3">
+                <div>
+                  <Label htmlFor="min" className="text-sm">Tempo (min)</Label>
+                  <Input
+                    id="min"
+                    type="number"
+                    inputMode="numeric"
+                    min={1}
+                    placeholder="Ex: 10"
+                    value={minutes}
+                    onChange={(e) => setMinutes(e.target.value)}
+                    className="h-12 text-base mt-1"
+                  />
+                </div>
+                <div>
+                  <Label htmlFor="val" className="text-sm">Valor (R$)</Label>
+                  <Input
+                    id="val"
+                    type="text"
+                    inputMode="decimal"
+                    placeholder="Ex: 15,00"
+                    value={price}
+                    onChange={(e) => setPrice(e.target.value)}
+                    className="h-12 text-base mt-1"
+                  />
+                </div>
+              </div>
             </div>
           </Section>
         )}
 
-        {packageId && (
+        {isValid && (
           <Card className="p-4 bg-primary-soft border-primary/30">
             <div className="text-sm text-muted-foreground mb-2">Resumo</div>
             <div className="space-y-1 text-sm">
               <Row k="Veículo" v={availableVehicles.find((v) => v.id === vehicleId)?.name ?? ""} />
-              <Row k="Tempo" v={`${selectedPkg?.minutes} minutos`} />
-              <Row k="Valor" v={currency(selectedPkg?.price ?? 0)} highlight />
+              <Row k="Tempo" v={`${minutesNum} minutos`} />
+              <Row k="Valor" v={currency(priceNum)} highlight />
             </div>
             <Button
               className="w-full h-14 mt-4 text-base font-bold gap-2"
@@ -148,6 +181,7 @@ function NovaLocacaoPage() {
           </Card>
         )}
       </div>
+
     </AppShell>
   );
 }
