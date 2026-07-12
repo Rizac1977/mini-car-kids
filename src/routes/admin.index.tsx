@@ -265,6 +265,8 @@ function AdminDashboard() {
             <ArrowUpRight className="h-5 w-5" />
           </Card>
         </Link>
+
+        <ChangePasswordCard />
       </div>
     </AdminShell>
   );
