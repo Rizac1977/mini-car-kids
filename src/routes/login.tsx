@@ -94,7 +94,7 @@ function LoginPage() {
               placeholder="voce@email.com"
               className="h-12"
               value={email}
-              onChange={(e) => setEmail(e.target.value)}
+              onChange={(e) => { setEmail(e.target.value); if (errorMsg) setErrorMsg(null); }}
               required
             />
           </div>
