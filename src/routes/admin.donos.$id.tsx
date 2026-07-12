@@ -547,33 +547,8 @@ function DonoDetailPage() {
             )}
           </Card>
 
-          <Card className="p-4 space-y-2">
-            <div className="font-semibold text-sm flex items-center gap-2">
-              <Timer className="h-4 w-4" /> Últimas locações
-            </div>
-            {(rentals ?? []).length === 0 ? (
-              <div className="text-xs text-muted-foreground">Nenhuma locação registrada.</div>
-            ) : (
-              <div className="space-y-2">
-                {(rentals ?? []).slice(0, 5).map((r) => (
-                  <div key={r.id} className="flex items-center justify-between text-sm">
-                    <div className="min-w-0">
-                      <div className="font-medium capitalize">{r.status}</div>
-                      <div className="text-xs text-muted-foreground">
-                        {new Date(r.started_at).toLocaleString("pt-BR")}
-                      </div>
-                    </div>
-                    <div className="text-right">
-                      <div className="font-semibold">{currency(Number(r.amount ?? 0))}</div>
-                      <div className="text-xs text-muted-foreground">
-                        {r.planned_minutes ?? 0} min
-                      </div>
-                    </div>
-                  </div>
-                ))}
-              </div>
-            )}
-          </Card>
+          <RevenueBreakdownCard rentals={rentals ?? []} />
+
 
           <Card className="p-4 space-y-2">
             <div className="font-semibold text-sm">Observações administrativas</div>
@@ -743,7 +718,154 @@ function DonoDetailPage() {
   );
 }
 
+function RevenueBreakdownCard({ rentals }: { rentals: Rental[] }) {
+  const [period, setPeriod] = useState<"diario" | "semanal" | "mensal">("diario");
+
+  const buckets = useMemo(() => {
+    const finalized = rentals.filter((r) => r.status === "finalizada");
+    const now = new Date();
+    const items: { label: string; total: number; count: number }[] = [];
+
+    if (period === "diario") {
+      for (let i = 13; i >= 0; i--) {
+        const d = new Date(now.getFullYear(), now.getMonth(), now.getDate() - i);
+        items.push({
+          label: d.toLocaleDateString("pt-BR", { day: "2-digit", month: "2-digit" }),
+          total: 0,
+          count: 0,
+        });
+      }
+      const start = new Date(now.getFullYear(), now.getMonth(), now.getDate() - 13);
+      for (const r of finalized) {
+        const dt = new Date(r.started_at);
+        if (dt < start) continue;
+        const idx = Math.floor(
+          (new Date(dt.getFullYear(), dt.getMonth(), dt.getDate()).getTime() - start.getTime()) / 86400000,
+        );
+        if (idx >= 0 && idx < items.length) {
+          items[idx].total += Number(r.amount ?? 0);
+          items[idx].count += 1;
+        }
+      }
+    } else if (period === "semanal") {
+      const startOfWeek = (d: Date) => {
+        const x = new Date(d.getFullYear(), d.getMonth(), d.getDate());
+        const dow = (x.getDay() + 6) % 7;
+        x.setDate(x.getDate() - dow);
+        return x;
+      };
+      const thisWeek = startOfWeek(now);
+      for (let i = 7; i >= 0; i--) {
+        const s = new Date(thisWeek);
+        s.setDate(s.getDate() - i * 7);
+        items.push({
+          label: `${String(s.getDate()).padStart(2, "0")}/${String(s.getMonth() + 1).padStart(2, "0")}`,
+          total: 0,
+          count: 0,
+        });
+      }
+      const first = new Date(thisWeek);
+      first.setDate(first.getDate() - 7 * 7);
+      for (const r of finalized) {
+        const dt = startOfWeek(new Date(r.started_at));
+        if (dt < first) continue;
+        const idx = Math.round((dt.getTime() - first.getTime()) / (7 * 86400000));
+        if (idx >= 0 && idx < items.length) {
+          items[idx].total += Number(r.amount ?? 0);
+          items[idx].count += 1;
+        }
+      }
+    } else {
+      const meses = ["Jan","Fev","Mar","Abr","Mai","Jun","Jul","Ago","Set","Out","Nov","Dez"];
+      for (let i = 11; i >= 0; i--) {
+        const d = new Date(now.getFullYear(), now.getMonth() - i, 1);
+        items.push({
+          label: `${meses[d.getMonth()]}/${String(d.getFullYear()).slice(2)}`,
+          total: 0,
+          count: 0,
+        });
+      }
+      const first = new Date(now.getFullYear(), now.getMonth() - 11, 1);
+      for (const r of finalized) {
+        const dt = new Date(r.started_at);
+        if (dt < first) continue;
+        const idx = (dt.getFullYear() - first.getFullYear()) * 12 + (dt.getMonth() - first.getMonth());
+        if (idx >= 0 && idx < items.length) {
+          items[idx].total += Number(r.amount ?? 0);
+          items[idx].count += 1;
+        }
+      }
+    }
+    return items;
+  }, [rentals, period]);
+
+  const totalPeriodo = buckets.reduce((s, b) => s + b.total, 0);
+  const countPeriodo = buckets.reduce((s, b) => s + b.count, 0);
+  const withData = [...buckets].reverse().filter((b) => b.count > 0);
+
+  const tabs: { id: typeof period; label: string }[] = [
+    { id: "diario", label: "Diário" },
+    { id: "semanal", label: "Semanal" },
+    { id: "mensal", label: "Mensal" },
+  ];
+
+  return (
+    <Card className="p-4 space-y-3">
+      <div className="flex items-center justify-between gap-2">
+        <div className="font-semibold text-sm flex items-center gap-2">
+          <Timer className="h-4 w-4" /> Resumo de locações
+        </div>
+        <div className="inline-flex rounded-lg bg-muted p-0.5">
+          {tabs.map((t) => (
+            <button
+              key={t.id}
+              onClick={() => setPeriod(t.id)}
+              className={`px-2.5 py-1 text-xs rounded-md transition-colors ${
+                period === t.id ? "bg-background shadow-sm font-semibold" : "text-muted-foreground"
+              }`}
+            >
+              {t.label}
+            </button>
+          ))}
+        </div>
+      </div>
+
+      <div className="grid grid-cols-2 gap-2 text-center">
+        <div className="rounded-md bg-muted/40 p-2">
+          <div className="text-xs text-muted-foreground">Total no período</div>
+          <div className="font-bold">{currency(totalPeriodo)}</div>
+        </div>
+        <div className="rounded-md bg-muted/40 p-2">
+          <div className="text-xs text-muted-foreground">Locações</div>
+          <div className="font-bold">{countPeriodo}</div>
+        </div>
+      </div>
+
+      {withData.length === 0 ? (
+        <div className="text-xs text-muted-foreground text-center py-4">
+          Nenhuma locação finalizada no período.
+        </div>
+      ) : (
+        <div className="max-h-64 overflow-y-auto border-t pt-2 space-y-1.5">
+          {withData.map((b, i) => (
+            <div key={i} className="flex items-center justify-between text-sm">
+              <span className="text-muted-foreground">{b.label}</span>
+              <div className="text-right">
+                <div className="font-semibold">{currency(b.total)}</div>
+                <div className="text-[10px] text-muted-foreground">
+                  {b.count} locaç{b.count === 1 ? "ão" : "ões"}
+                </div>
+              </div>
+            </div>
+          ))}
+        </div>
+      )}
+    </Card>
+  );
+}
+
 function StatCard({
+
   icon: Icon,
   label,
   value,
