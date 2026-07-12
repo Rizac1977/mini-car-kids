@@ -802,7 +802,7 @@ function RevenueBreakdownCard({ rentals }: { rentals: Rental[] }) {
 
   const totalPeriodo = buckets.reduce((s, b) => s + b.total, 0);
   const countPeriodo = buckets.reduce((s, b) => s + b.count, 0);
-  const withData = [...buckets].reverse().filter((b) => b.count > 0);
+  
 
   const tabs: { id: typeof period; label: string }[] = [
     { id: "diario", label: "Diário" },
