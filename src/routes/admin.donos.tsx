@@ -51,6 +51,7 @@ const filters = [
 ] as const;
 
 function DonosPage() {
+  const navigate = useNavigate();
   const [filter, setFilter] = useState<(typeof filters)[number]["key"]>("todos");
   const [search, setSearch] = useState("");
   const [stateFilter, setStateFilter] = useState("");
