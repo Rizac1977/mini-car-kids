@@ -33,7 +33,8 @@ function NovaLocacaoPage() {
   const qc = useQueryClient();
 
   const [vehicleId, setVehicleId] = useState<string | null>(null);
-  const [packageId, setPackageId] = useState<string | null>(null);
+  const [minutes, setMinutes] = useState<string>("");
+  const [price, setPrice] = useState<string>("");
 
   const { data: availableVehicles = [] } = useQuery({
     queryKey: ["vehicles-disp", user?.id],
@@ -50,7 +51,10 @@ function NovaLocacaoPage() {
     },
   });
 
-  const selectedPkg = packages.find((p) => p.id === packageId);
+  const minutesNum = Number(minutes);
+  const priceNum = Number(price.replace(",", "."));
+  const isValid = vehicleId && minutesNum > 0 && priceNum >= 0 && !Number.isNaN(priceNum);
+
 
   const startRental = useMutation({
     mutationFn: async () => {
