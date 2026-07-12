@@ -25,7 +25,6 @@ import { Route as AppPerfilRouteImport } from './routes/app.perfil'
 import { Route as AppLocacoesRouteImport } from './routes/app.locacoes'
 import { Route as AppHistoricoRouteImport } from './routes/app.historico'
 import { Route as AppAssinaturaRouteImport } from './routes/app.assinatura'
-import { Route as AdminDonosRouteImport } from './routes/admin.donos'
 import { Route as AppLocacoesIndexRouteImport } from './routes/app.locacoes.index'
 import { Route as AppLocacoesNovaRouteImport } from './routes/app.locacoes.nova'
 import { Route as AdminDonosIdRouteImport } from './routes/admin.donos.$id'
@@ -110,11 +109,6 @@ const AppAssinaturaRoute = AppAssinaturaRouteImport.update({
   path: '/assinatura',
   getParentRoute: () => AppRoute,
 } as any)
-const AdminDonosRoute = AdminDonosRouteImport.update({
-  id: '/donos',
-  path: '/donos',
-  getParentRoute: () => AdminRoute,
-} as any)
 const AppLocacoesIndexRoute = AppLocacoesIndexRouteImport.update({
   id: '/',
   path: '/',
@@ -126,9 +120,9 @@ const AppLocacoesNovaRoute = AppLocacoesNovaRouteImport.update({
   getParentRoute: () => AppLocacoesRoute,
 } as any)
 const AdminDonosIdRoute = AdminDonosIdRouteImport.update({
-  id: '/$id',
-  path: '/$id',
-  getParentRoute: () => AdminDonosRoute,
+  id: '/donos/$id',
+  path: '/donos/$id',
+  getParentRoute: () => AdminRoute,
 } as any)
 
 export interface FileRoutesByFullPath {
@@ -140,7 +134,6 @@ export interface FileRoutesByFullPath {
   '/login': typeof LoginRoute
   '/recuperar-senha': typeof RecuperarSenhaRoute
   '/redefinir-senha': typeof RedefinirSenhaRoute
-  '/admin/donos': typeof AdminDonosRouteWithChildren
   '/app/assinatura': typeof AppAssinaturaRoute
   '/app/historico': typeof AppHistoricoRoute
   '/app/locacoes': typeof AppLocacoesRouteWithChildren
@@ -160,7 +153,6 @@ export interface FileRoutesByTo {
   '/login': typeof LoginRoute
   '/recuperar-senha': typeof RecuperarSenhaRoute
   '/redefinir-senha': typeof RedefinirSenhaRoute
-  '/admin/donos': typeof AdminDonosRouteWithChildren
   '/app/assinatura': typeof AppAssinaturaRoute
   '/app/historico': typeof AppHistoricoRoute
   '/app/perfil': typeof AppPerfilRoute
@@ -182,7 +174,6 @@ export interface FileRoutesById {
   '/login': typeof LoginRoute
   '/recuperar-senha': typeof RecuperarSenhaRoute
   '/redefinir-senha': typeof RedefinirSenhaRoute
-  '/admin/donos': typeof AdminDonosRouteWithChildren
   '/app/assinatura': typeof AppAssinaturaRoute
   '/app/historico': typeof AppHistoricoRoute
   '/app/locacoes': typeof AppLocacoesRouteWithChildren
@@ -206,7 +197,6 @@ export interface FileRouteTypes {
     | '/login'
     | '/recuperar-senha'
     | '/redefinir-senha'
-    | '/admin/donos'
     | '/app/assinatura'
     | '/app/historico'
     | '/app/locacoes'
@@ -226,7 +216,6 @@ export interface FileRouteTypes {
     | '/login'
     | '/recuperar-senha'
     | '/redefinir-senha'
-    | '/admin/donos'
     | '/app/assinatura'
     | '/app/historico'
     | '/app/perfil'
@@ -247,7 +236,6 @@ export interface FileRouteTypes {
     | '/login'
     | '/recuperar-senha'
     | '/redefinir-senha'
-    | '/admin/donos'
     | '/app/assinatura'
     | '/app/historico'
     | '/app/locacoes'
@@ -386,13 +374,6 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AppAssinaturaRouteImport
       parentRoute: typeof AppRoute
     }
-    '/admin/donos': {
-      id: '/admin/donos'
-      path: '/donos'
-      fullPath: '/admin/donos'
-      preLoaderRoute: typeof AdminDonosRouteImport
-      parentRoute: typeof AdminRoute
-    }
     '/app/locacoes/': {
       id: '/app/locacoes/'
       path: '/'
@@ -409,34 +390,22 @@ declare module '@tanstack/react-router' {
     }
     '/admin/donos/$id': {
       id: '/admin/donos/$id'
-      path: '/$id'
+      path: '/donos/$id'
       fullPath: '/admin/donos/$id'
       preLoaderRoute: typeof AdminDonosIdRouteImport
-      parentRoute: typeof AdminDonosRoute
+      parentRoute: typeof AdminRoute
     }
   }
 }
 
-interface AdminDonosRouteChildren {
+interface AdminRouteChildren {
+  AdminIndexRoute: typeof AdminIndexRoute
   AdminDonosIdRoute: typeof AdminDonosIdRoute
 }
 
-const AdminDonosRouteChildren: AdminDonosRouteChildren = {
-  AdminDonosIdRoute: AdminDonosIdRoute,
-}
-
-const AdminDonosRouteWithChildren = AdminDonosRoute._addFileChildren(
-  AdminDonosRouteChildren,
-)
-
-interface AdminRouteChildren {
-  AdminDonosRoute: typeof AdminDonosRouteWithChildren
-  AdminIndexRoute: typeof AdminIndexRoute
-}
-
 const AdminRouteChildren: AdminRouteChildren = {
-  AdminDonosRoute: AdminDonosRouteWithChildren,
   AdminIndexRoute: AdminIndexRoute,
+  AdminDonosIdRoute: AdminDonosIdRoute,
 }
 
 const AdminRouteWithChildren = AdminRoute._addFileChildren(AdminRouteChildren)
@@ -490,13 +459,3 @@ const rootRouteChildren: RootRouteChildren = {
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
   ._addFileTypes<FileRouteTypes>()
-
-import type { getRouter } from './router.tsx'
-import type { startInstance } from './start.ts'
-declare module '@tanstack/react-start' {
-  interface Register {
-    ssr: true
-    router: Awaited<ReturnType<typeof getRouter>>
-    config: Awaited<ReturnType<typeof startInstance.getOptions>>
-  }
-}
