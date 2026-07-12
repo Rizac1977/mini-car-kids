@@ -850,49 +850,20 @@ function RevenueBreakdownCard({ rentals }: { rentals: Rental[] }) {
           Nenhuma locação finalizada no período.
         </div>
       ) : (
-        <div className="h-56 -mx-2">
-          <ResponsiveContainer width="100%" height="100%">
-            <BarChart data={buckets} margin={{ top: 8, right: 8, left: 0, bottom: 4 }}>
-              <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--border))" vertical={false} />
-              <XAxis
-                dataKey="label"
-                tick={{ fontSize: 10 }}
-                interval="preserveStartEnd"
-                axisLine={false}
-                tickLine={false}
-              />
-              <YAxis
-                tick={{ fontSize: 10 }}
-                axisLine={false}
-                tickLine={false}
-                width={44}
-                tickFormatter={(v) => (v >= 1000 ? `${Math.round(v / 100) / 10}k` : String(v))}
-              />
-              <Tooltip
-                cursor={{ fill: "hsl(var(--muted) / 0.4)" }}
-                contentStyle={{
-                  fontSize: 12,
-                  borderRadius: 8,
-                  border: "1px solid hsl(var(--border))",
-                  background: "hsl(var(--card))",
-                }}
-                labelStyle={{ fontWeight: 600 }}
-                formatter={(v: number | string, _n, p) => {
-                  const count = (p?.payload as { count?: number } | undefined)?.count ?? 0;
-                  return [
-                    `${currency(Number(v))} · ${count} locaç${count === 1 ? "ão" : "ões"}`,
-                    "Faturamento",
-                  ];
-                }}
-              />
-              <Bar dataKey="total" fill="hsl(var(--primary))" radius={[4, 4, 0, 0]} />
-            </BarChart>
-          </ResponsiveContainer>
-        </div>
+        <Suspense
+          fallback={
+            <div className="h-56 flex items-center justify-center text-muted-foreground">
+              <Loader2 className="h-5 w-5 animate-spin" />
+            </div>
+          }
+        >
+          <RevenueBarChart data={buckets} />
+        </Suspense>
       )}
     </Card>
   );
 }
+
 
 function StatCard({
 
