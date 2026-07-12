@@ -453,6 +453,7 @@ function DonoDetailPage() {
 
         <TabsContent value="info" className="mt-4 space-y-2">
           <Card className="p-4 text-sm space-y-2">
+            <div className="font-semibold text-sm mb-1">Dados do negócio</div>
             <Line icon={UserIcon} label="Nome" value={profile.full_name} />
             <Line icon={Mail} label="Negócio" value={profile.business_name ?? "—"} />
             <Line icon={Phone} label="Telefone" value={profile.phone ?? "—"} />
@@ -462,6 +463,116 @@ function DonoDetailPage() {
               value={[profile.city, profile.state].filter(Boolean).join("/") || "—"}
             />
             <Line icon={CheckCircle2} label="Status" value={status} capitalize />
+            <Line icon={Calendar} label="Cadastro" value={dateBR(profile.created_at)} />
+          </Card>
+
+          <Card className="p-4 text-sm space-y-2">
+            <div className="flex items-center justify-between">
+              <div className="font-semibold">Assinatura</div>
+              <Button size="sm" variant="ghost" className="h-7 text-xs gap-1" onClick={() => setManageOpen(true)}>
+                <Settings className="h-3.5 w-3.5" /> Gerenciar
+              </Button>
+            </div>
+            {sub ? (
+              <>
+                <Line icon={CheckCircle2} label="Plano" value={sub.plan} capitalize />
+                <Line icon={CheckCircle2} label="Situação" value={sub.status} capitalize />
+                <Line
+                  icon={Calendar}
+                  label="Vence em"
+                  value={`${dateBR(sub.current_period_end)} (${subDaysLeft} dia${subDaysLeft === 1 ? "" : "s"})`}
+                />
+              </>
+            ) : (
+              <div className="text-xs text-muted-foreground">Nenhuma assinatura registrada.</div>
+            )}
+          </Card>
+
+          <Card className="p-4 text-sm space-y-2">
+            <div className="font-semibold flex items-center gap-2">
+              <DollarSign className="h-4 w-4" /> Faturamento do negócio
+            </div>
+            <div className="grid grid-cols-2 gap-2 text-center">
+              <div className="rounded-md bg-muted/40 p-2">
+                <div className="text-xs text-muted-foreground">Total arrecadado</div>
+                <div className="font-bold">{currency(stats.revenue)}</div>
+              </div>
+              <div className="rounded-md bg-muted/40 p-2">
+                <div className="text-xs text-muted-foreground">Ticket médio</div>
+                <div className="font-bold">
+                  {currency(stats.finalized > 0 ? stats.revenue / stats.finalized : 0)}
+                </div>
+              </div>
+              <div className="rounded-md bg-muted/40 p-2">
+                <div className="text-xs text-muted-foreground">Locações ativas</div>
+                <div className="font-bold">{stats.active}</div>
+              </div>
+              <div className="rounded-md bg-muted/40 p-2">
+                <div className="text-xs text-muted-foreground">Finalizadas</div>
+                <div className="font-bold">{stats.finalized}</div>
+              </div>
+            </div>
+          </Card>
+
+          <Card className="p-4 space-y-2">
+            <div className="font-semibold text-sm flex items-center gap-2">
+              <Car className="h-4 w-4" /> Veículos cadastrados ({vehicles?.length ?? 0})
+            </div>
+            {(vehicles ?? []).length === 0 ? (
+              <div className="text-xs text-muted-foreground">Nenhum veículo cadastrado.</div>
+            ) : (
+              <div className="space-y-2">
+                {(vehicles ?? []).slice(0, 5).map((v) => (
+                  <div key={v.id} className="flex items-center gap-3 text-sm">
+                    <div className="h-9 w-9 rounded bg-muted grid place-items-center shrink-0">
+                      <Car className="h-4 w-4 text-muted-foreground" />
+                    </div>
+                    <div className="flex-1 min-w-0">
+                      <div className="font-medium truncate">{v.name}</div>
+                      <div className="text-xs text-muted-foreground">
+                        Desde {dateBR(v.created_at)}
+                      </div>
+                    </div>
+                    <Badge variant="outline" className="capitalize text-[10px]">
+                      {v.status.replace("_", " ")}
+                    </Badge>
+                  </div>
+                ))}
+                {(vehicles ?? []).length > 5 && (
+                  <div className="text-xs text-muted-foreground text-center pt-1">
+                    +{(vehicles ?? []).length - 5} veículo(s) — veja a aba Veículos
+                  </div>
+                )}
+              </div>
+            )}
+          </Card>
+
+          <Card className="p-4 space-y-2">
+            <div className="font-semibold text-sm flex items-center gap-2">
+              <Timer className="h-4 w-4" /> Últimas locações
+            </div>
+            {(rentals ?? []).length === 0 ? (
+              <div className="text-xs text-muted-foreground">Nenhuma locação registrada.</div>
+            ) : (
+              <div className="space-y-2">
+                {(rentals ?? []).slice(0, 5).map((r) => (
+                  <div key={r.id} className="flex items-center justify-between text-sm">
+                    <div className="min-w-0">
+                      <div className="font-medium capitalize">{r.status}</div>
+                      <div className="text-xs text-muted-foreground">
+                        {new Date(r.started_at).toLocaleString("pt-BR")}
+                      </div>
+                    </div>
+                    <div className="text-right">
+                      <div className="font-semibold">{currency(Number(r.amount ?? 0))}</div>
+                      <div className="text-xs text-muted-foreground">
+                        {r.planned_minutes ?? 0} min
+                      </div>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            )}
           </Card>
 
           <Card className="p-4 space-y-2">
