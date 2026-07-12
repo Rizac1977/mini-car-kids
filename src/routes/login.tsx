@@ -1,6 +1,6 @@
 import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
 import { useEffect, useState } from "react";
-import { Eye, EyeOff, Loader2 } from "lucide-react";
+import { Eye, EyeOff, Loader2, AlertCircle } from "lucide-react";
 import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -26,6 +26,7 @@ function LoginPage() {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [loading, setLoading] = useState(false);
+  const [errorMsg, setErrorMsg] = useState<string | null>(null);
   const navigate = useNavigate();
 
   // Se já está logado, redirecionar
@@ -41,9 +42,17 @@ function LoginPage() {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setLoading(true);
+    setErrorMsg(null);
+    if (!email || !password) {
+      setErrorMsg("Preencha o e-mail e a senha para continuar.");
+      setLoading(false);
+      return;
+    }
     const { data, error } = await supabase.auth.signInWithPassword({ email, password });
     if (error) {
-      toast.error(translateAuthError(error.message));
+      const msg = translateAuthError(error.message);
+      setErrorMsg(msg);
+      toast.error(msg);
       setLoading(false);
       return;
     }
@@ -64,6 +73,17 @@ function LoginPage() {
           Entre para acompanhar suas locações
         </p>
 
+        {errorMsg ? (
+          <div
+            role="alert"
+            aria-live="polite"
+            className="mb-4 flex items-start gap-2 rounded-md border border-destructive/40 bg-destructive/10 px-3 py-2 text-sm text-destructive"
+          >
+            <AlertCircle className="h-4 w-4 mt-0.5 shrink-0" />
+            <span>{errorMsg}</span>
+          </div>
+        ) : null}
+
         <form className="space-y-4" onSubmit={handleSubmit}>
           <div className="space-y-1.5">
             <Label htmlFor="email">E-mail</Label>
@@ -74,7 +94,7 @@ function LoginPage() {
               placeholder="voce@email.com"
               className="h-12"
               value={email}
-              onChange={(e) => setEmail(e.target.value)}
+              onChange={(e) => { setEmail(e.target.value); if (errorMsg) setErrorMsg(null); }}
               required
             />
           </div>
@@ -88,7 +108,7 @@ function LoginPage() {
                 placeholder="••••••••"
                 className="h-12 pr-12"
                 value={password}
-                onChange={(e) => setPassword(e.target.value)}
+                onChange={(e) => { setPassword(e.target.value); if (errorMsg) setErrorMsg(null); }}
                 required
               />
               <button
