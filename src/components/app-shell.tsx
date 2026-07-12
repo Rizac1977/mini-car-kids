@@ -152,12 +152,12 @@ export function AppShell({ children, title }: { children: ReactNode; title?: str
                 key={item.to}
                 to={item.to}
                 className={cn(
-                  "flex flex-col items-center justify-center gap-1 text-[11px]",
+                  "flex flex-col items-center justify-center gap-1 text-[10px] px-1 min-w-0",
                   active ? "text-primary font-semibold" : "text-muted-foreground"
                 )}
               >
-                <Icon className="h-5 w-5" />
-                {item.label}
+                <Icon className="h-5 w-5 shrink-0" />
+                <span className="truncate max-w-full">{item.label}</span>
               </Link>
             );
           })}
