@@ -138,12 +138,12 @@ export function AppShell({ children, title }: { children: ReactNode; title?: str
                 <Link
                   key={item.to}
                   to={item.to}
-                  className="flex flex-col items-center justify-center -mt-6"
+                  className="flex flex-col items-center justify-center -mt-6 px-1 min-w-0"
                 >
-                  <div className="h-14 w-14 rounded-2xl bg-primary text-primary-foreground grid place-items-center shadow-[var(--shadow-elevated)]">
+                  <div className="h-14 w-14 rounded-2xl bg-primary text-primary-foreground grid place-items-center shadow-[var(--shadow-elevated)] shrink-0">
                     <Icon className="h-7 w-7" />
                   </div>
-                  <span className="text-[10px] mt-1 font-medium">{item.label}</span>
+                  <span className="text-[10px] mt-1 font-medium truncate max-w-full">{item.label}</span>
                 </Link>
               );
             }
