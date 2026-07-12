@@ -118,7 +118,7 @@ export function AppShell({ children, title }: { children: ReactNode; title?: str
         target="_blank"
         rel="noopener noreferrer"
         aria-label="Falar com o suporte no WhatsApp"
-        className="fixed z-50 right-4 bottom-20 lg:bottom-6 h-14 w-14 rounded-full grid place-items-center text-white shadow-[var(--shadow-elevated)] hover:scale-105 transition-transform"
+        className="fixed z-50 right-4 bottom-24 lg:bottom-6 h-14 w-14 rounded-full grid place-items-center text-white shadow-[var(--shadow-elevated)] hover:scale-105 transition-transform"
         style={{ backgroundColor: "#25D366" }}
       >
         <svg viewBox="0 0 32 32" className="h-7 w-7" fill="currentColor" aria-hidden="true">
