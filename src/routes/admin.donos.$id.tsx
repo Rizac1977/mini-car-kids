@@ -32,6 +32,7 @@ import type { AccountStatus } from "@/hooks/use-auth";
 import { AdminShell } from "./admin.index";
 import { ApproveOwnerDialog } from "@/components/approve-owner-dialog";
 import { ManageSubscriptionDialog } from "@/components/manage-subscription-dialog";
+import { Bar, BarChart, CartesianGrid, ResponsiveContainer, Tooltip, XAxis, YAxis } from "recharts";
 
 export const Route = createFileRoute("/admin/donos/$id")({
   head: () => ({
