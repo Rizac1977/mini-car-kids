@@ -90,6 +90,14 @@ function fmtMinutes(min: number) {
   return `${h}h ${m}min`;
 }
 
+function fmtOverdue(ms: number) {
+  const totalSec = Math.floor(ms / 1000);
+  const m = Math.floor(totalSec / 60);
+  const s = totalSec % 60;
+  if (m === 0) return `${s}s`;
+  return `${m}min ${String(s).padStart(2, "0")}s`;
+}
+
 export const Route = createFileRoute("/app/locacoes/")({
   head: () => ({
     meta: [
@@ -109,7 +117,7 @@ function LocacoesPage() {
   const [finalizeTarget, setFinalizeTarget] = useState<ActiveRental | null>(null);
   const [cancelTarget, setCancelTarget] = useState<ActiveRental | null>(null);
   const [summary, setSummary] = useState<FinalSummary | null>(null);
-  const alertedRef = useRef<Set<string>>(new Set());
+  const alertedRef = useRef<Map<string, number>>(new Map());
   const audioCtxRef = useRef<AudioContext | null>(null);
 
   useEffect(() => {
@@ -295,16 +303,27 @@ function LocacoesPage() {
 
   useEffect(() => {
     const activeIds = new Set(rentals.map((r) => r.id));
-    for (const id of alertedRef.current) {
+    for (const id of Array.from(alertedRef.current.keys())) {
       if (!activeIds.has(id)) alertedRef.current.delete(id);
     }
+    const now = Date.now();
     for (const r of rentals) {
       if (r.paused_at) continue;
       const end = new Date(r.planned_end_at).getTime();
-      if (end - Date.now() <= 0 && !alertedRef.current.has(r.id)) {
-        alertedRef.current.add(r.id);
+      if (end - now > 0) continue;
+      const last = alertedRef.current.get(r.id);
+      // Primeiro alerta ao encerrar; depois repete a cada 60s até finalizar.
+      if (last === undefined || now - last >= 60_000) {
+        alertedRef.current.set(r.id, now);
         playAlarm();
-        toast.warning(`Tempo encerrado: ${r.vehicles?.name ?? "Veículo"}`, { duration: 8000 });
+        const overdueMs = now - end;
+        const msg = last === undefined
+          ? `Tempo encerrado: ${r.vehicles?.name ?? "Veículo"}`
+          : `Finalize a locação: ${r.vehicles?.name ?? "Veículo"} (${fmtOverdue(overdueMs)} em atraso)`;
+        toast.warning(msg, {
+          description: "Toque em Finalizar para encerrar a locação.",
+          duration: 10000,
+        });
       }
     }
   });
@@ -374,6 +393,17 @@ function LocacoesPage() {
                   </div>
                   <Progress value={pct} className="h-2.5" />
                 </div>
+
+                {!isPaused && remainingMs === 0 && (
+                  <div className="mt-3 rounded-md border-2 border-destructive bg-destructive/10 p-3 text-center">
+                    <div className="text-sm font-bold text-destructive">
+                      ⚠️ Finalize esta locação
+                    </div>
+                    <div className="mt-0.5 text-xs text-destructive/90">
+                      Em atraso há {fmtOverdue(Date.now() - end)} — aviso sonoro a cada 1 min até finalizar.
+                    </div>
+                  </div>
+                )}
 
                 <div className="mt-4 grid grid-cols-2 gap-2">
                   <Button
