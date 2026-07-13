@@ -601,6 +601,8 @@ function DonoDetailPage() {
               </Button>
             </Card>
           )}
+
+          <SubscriptionPaymentsCard userId={userId} currentPeriodEnd={sub?.current_period_end ?? null} />
         </TabsContent>
 
         <TabsContent value="veiculos" className="mt-4 space-y-2">
