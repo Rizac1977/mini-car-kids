@@ -124,10 +124,8 @@ function AssinaturaPage() {
         )}
 
         <Card className="p-4">
-          <h2 className="font-bold mb-3 text-sm">Histórico</h2>
-          <div className="space-y-3 text-sm">
-            <HistoryItem date={dateBR(data.started_at)} event={`Plano ${data.plan} iniciado`} />
-          </div>
+          <h2 className="font-bold mb-3 text-sm">Histórico de pagamentos</h2>
+          <PaymentsHistory />
         </Card>
 
         {data.notes && (
@@ -151,14 +149,94 @@ function AssinaturaPage() {
   );
 }
 
-function HistoryItem({ date, event }: { date: string; event: string }) {
-  return (
-    <div className="flex items-start gap-3">
-      <Calendar className="h-4 w-4 text-muted-foreground mt-0.5 shrink-0" />
-      <div>
-        <div>{event}</div>
-        <div className="text-xs text-muted-foreground">{date}</div>
+type PayRow = {
+  id: string;
+  paid_at: string;
+  amount: number;
+  period_start: string;
+  period_end: string;
+  payment_method: string | null;
+};
+
+function currencyBR(v: number) {
+  return v.toLocaleString("pt-BR", { style: "currency", currency: "BRL" });
+}
+
+function PaymentsHistory() {
+  const { data, isLoading } = useQuery({
+    queryKey: ["my-payments"],
+    queryFn: async () => {
+      const { data: u } = await supabase.auth.getUser();
+      if (!u.user) return [] as PayRow[];
+      const { data, error } = await supabase
+        .from("subscription_payments")
+        .select("id,paid_at,amount,period_start,period_end,payment_method")
+        .eq("user_id", u.user.id)
+        .order("paid_at", { ascending: false });
+      if (error) throw error;
+      return (data ?? []) as PayRow[];
+    },
+  });
+
+  if (isLoading) {
+    return (
+      <div className="py-4 grid place-items-center text-muted-foreground">
+        <Loader2 className="h-4 w-4 animate-spin" />
       </div>
+    );
+  }
+  if (!data || data.length === 0) {
+    return (
+      <div className="text-xs text-muted-foreground text-center py-2">
+        Nenhum pagamento registrado ainda.
+      </div>
+    );
+  }
+
+  // Group by month/year of paid_at
+  const meses = ["Janeiro","Fevereiro","Março","Abril","Maio","Junho","Julho","Agosto","Setembro","Outubro","Novembro","Dezembro"];
+  const groups = new Map<string, { label: string; items: PayRow[]; total: number }>();
+  for (const p of data) {
+    const d = new Date(p.paid_at + "T00:00:00");
+    const key = `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}`;
+    const label = `${meses[d.getMonth()]} de ${d.getFullYear()}`;
+    const g = groups.get(key) ?? { label, items: [], total: 0 };
+    g.items.push(p);
+    g.total += Number(p.amount);
+    groups.set(key, g);
+  }
+
+  return (
+    <div className="space-y-4 text-sm">
+      {Array.from(groups.entries()).map(([key, g]) => (
+        <div key={key} className="space-y-2">
+          <div className="flex justify-between text-xs">
+            <span className="font-semibold uppercase tracking-wide">{g.label}</span>
+            <span className="text-muted-foreground">{currencyBR(g.total)}</span>
+          </div>
+          <div className="space-y-2">
+            {g.items.map((p) => (
+              <div key={p.id} className="flex items-center justify-between gap-2 rounded-lg border p-3">
+                <div className="min-w-0">
+                  <div className="font-medium">{currencyBR(Number(p.amount))}</div>
+                  <div className="text-xs text-muted-foreground">
+                    Pago em {dateBR(p.paid_at)}
+                  </div>
+                  <div className="text-xs text-muted-foreground">
+                    Período: {dateBR(p.period_start)} → {dateBR(p.period_end)}
+                  </div>
+                </div>
+                {p.payment_method && (
+                  <span className="text-[10px] uppercase font-semibold text-muted-foreground border rounded-full px-2 py-0.5">
+                    {p.payment_method}
+                  </span>
+                )}
+              </div>
+            ))}
+          </div>
+        </div>
+      ))}
     </div>
   );
 }
+

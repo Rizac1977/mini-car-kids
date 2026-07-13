@@ -32,6 +32,7 @@ import type { AccountStatus } from "@/hooks/use-auth";
 import { AdminShell } from "./admin.index";
 import { ApproveOwnerDialog } from "@/components/approve-owner-dialog";
 import { ManageSubscriptionDialog } from "@/components/manage-subscription-dialog";
+import { SubscriptionPaymentsCard } from "@/components/subscription-payments-card";
 
 // Lazy-load recharts para tirar ~200kb do chunk inicial de admin.
 const RevenueBarChart = lazy(() => import("@/components/revenue-bar-chart"));
@@ -600,6 +601,8 @@ function DonoDetailPage() {
               </Button>
             </Card>
           )}
+
+          <SubscriptionPaymentsCard userId={userId} currentPeriodEnd={sub?.current_period_end ?? null} />
         </TabsContent>
 
         <TabsContent value="veiculos" className="mt-4 space-y-2">
