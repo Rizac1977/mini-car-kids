@@ -124,10 +124,8 @@ function AssinaturaPage() {
         )}
 
         <Card className="p-4">
-          <h2 className="font-bold mb-3 text-sm">Histórico</h2>
-          <div className="space-y-3 text-sm">
-            <HistoryItem date={dateBR(data.started_at)} event={`Plano ${data.plan} iniciado`} />
-          </div>
+          <h2 className="font-bold mb-3 text-sm">Histórico de pagamentos</h2>
+          <PaymentsHistory />
         </Card>
 
         {data.notes && (
