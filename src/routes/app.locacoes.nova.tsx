@@ -37,14 +37,13 @@ function NovaLocacaoPage() {
   const [price, setPrice] = useState<string>("");
 
   const { data: availableVehicles = [] } = useQuery({
-    queryKey: ["vehicles-disp", user?.id],
+    queryKey: ["vehicles-nova", user?.id],
     enabled: !!user,
     queryFn: async () => {
       const { data, error } = await supabase
         .from("vehicles")
         .select("id,name,photo_url,status")
         .eq("user_id", user!.id)
-        .eq("status", "disponivel")
         .order("name");
       if (error) throw error;
       return data;
@@ -102,6 +101,7 @@ function NovaLocacaoPage() {
                   id={v.id}
                   name={v.name}
                   photoPath={v.photo_url}
+                  status={v.status as "disponivel" | "em_locacao" | "manutencao" | "inativo"}
                   selected={vehicleId === v.id}
                   onSelect={() => setVehicleId(v.id)}
                 />
@@ -209,24 +209,45 @@ function Row({ k, v, highlight }: { k: string; v: string; highlight?: boolean })
   );
 }
 
-function VehicleTile({ id, name, photoPath, selected, onSelect }: {
-  id: string; name: string; photoPath: string | null; selected: boolean; onSelect: () => void;
+type VehicleTileStatus = "disponivel" | "em_locacao" | "manutencao" | "inativo";
+
+function VehicleTile({ id, name, photoPath, status, selected, onSelect }: {
+  id: string; name: string; photoPath: string | null; status: VehicleTileStatus; selected: boolean; onSelect: () => void;
 }) {
   const src = useVehiclePhotoUrl(photoPath);
+  const disabled = status !== "disponivel";
+  const statusLabel: Record<VehicleTileStatus, string> = {
+    disponivel: "",
+    em_locacao: "Em locação",
+    manutencao: "Manutenção",
+    inativo: "Indisponível",
+  };
   return (
     <button
       key={id}
       onClick={onSelect}
+      disabled={disabled}
+      aria-disabled={disabled}
+      title={disabled ? statusLabel[status] : undefined}
       className={`p-3 rounded-xl border-2 flex flex-col items-center text-center transition-all ${
-        selected ? "border-primary bg-primary-soft" : "border-border bg-card"
+        disabled
+          ? "border-border bg-muted/40 opacity-60 cursor-not-allowed"
+          : selected
+            ? "border-primary bg-primary-soft"
+            : "border-border bg-card"
       }`}
     >
       {src ? (
-        <img loading="lazy" decoding="async" src={src} alt={name} className="h-16 w-16 rounded-lg object-cover mb-1" />
+        <img loading="lazy" decoding="async" src={src} alt={name} className={`h-16 w-16 rounded-lg object-cover mb-1 ${disabled ? "grayscale" : ""}`} />
       ) : (
         <div className="h-16 w-16 rounded-lg bg-muted grid place-items-center text-3xl mb-1">🚗</div>
       )}
       <div className="text-sm font-semibold truncate w-full">{name}</div>
+      {disabled && (
+        <span className="mt-1 text-[10px] font-semibold uppercase tracking-wide px-2 py-0.5 rounded-full bg-warning/20 text-warning-foreground border border-warning/40">
+          {statusLabel[status]}
+        </span>
+      )}
     </button>
   );
 }
