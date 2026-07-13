@@ -26,7 +26,9 @@ type Props = {
   } | null;
 };
 
-const PLANS = ["trial", "mensal", "anual"] as const;
+const PLANS = ["trial", "mensal", "trimestral", "anual"] as const;
+const PLAN_DAYS: Record<string, number> = { mensal: 30, trimestral: 90, anual: 365 };
+
 const STATUSES = ["trial", "ativa", "inadimplente", "cancelada"] as const;
 type SubStatus = (typeof STATUSES)[number];
 
