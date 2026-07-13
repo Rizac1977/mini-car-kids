@@ -58,6 +58,13 @@ export function ManageSubscriptionDialog({ open, onOpenChange, userId, current }
     setEndDate(toDateInputValue(base.toISOString()));
   }
 
+  function endTrialNow() {
+    setPlan("trial");
+    setStatus("cancelada");
+    setEndDate(toDateInputValue(new Date().toISOString()));
+  }
+
+
   const save = useMutation({
     mutationFn: async () => {
       const { data: userData } = await supabase.auth.getUser();
