@@ -6,6 +6,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { BrandLogo } from "@/components/brand-logo";
+import { SupportWhatsapp } from "@/components/support-whatsapp";
 import { supabase } from "@/integrations/supabase/client";
 import { fetchProfileAndRole, routeForUser } from "@/hooks/use-auth";
 import { translateAuthError } from "@/lib/auth-errors";
@@ -137,7 +138,21 @@ function LoginPage() {
             </Link>
           </div>
         </div>
+
+        <div className="mt-8 pt-6 border-t text-center text-xs text-muted-foreground">
+          Precisa de ajuda?{" "}
+          <a
+            href="https://wa.me/5584998472400?text=Ol%C3%A1%2C%20preciso%20de%20suporte%20no%20MiniCar%20Gest%C3%A3o"
+            target="_blank"
+            rel="noopener noreferrer"
+            className="text-primary font-semibold"
+          >
+            Falar com o suporte no WhatsApp
+          </a>
+        </div>
       </div>
+      <SupportWhatsapp />
     </div>
   );
 }
+
