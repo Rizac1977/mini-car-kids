@@ -37,14 +37,13 @@ function NovaLocacaoPage() {
   const [price, setPrice] = useState<string>("");
 
   const { data: availableVehicles = [] } = useQuery({
-    queryKey: ["vehicles-disp", user?.id],
+    queryKey: ["vehicles-nova", user?.id],
     enabled: !!user,
     queryFn: async () => {
       const { data, error } = await supabase
         .from("vehicles")
         .select("id,name,photo_url,status")
         .eq("user_id", user!.id)
-        .eq("status", "disponivel")
         .order("name");
       if (error) throw error;
       return data;
