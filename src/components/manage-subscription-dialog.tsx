@@ -72,11 +72,18 @@ export function ManageSubscriptionDialog({ open, onOpenChange, userId, current }
       if (!adminId) throw new Error("Sessão expirada");
 
       const endIso = new Date(endDate + "T23:59:59").toISOString();
+      const normalizedStatus: SubStatus =
+        plan !== "trial" && status === "trial"
+          ? "ativa"
+          : plan === "trial" && status !== "trial" && status !== "cancelada"
+            ? "trial"
+            : (status as SubStatus);
       const payload = {
         plan,
-        status: status as SubStatus,
+        status: normalizedStatus,
         current_period_end: endIso,
       };
+
 
       const { data: existing } = await supabase
         .from("subscriptions")
