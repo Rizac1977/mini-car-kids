@@ -109,7 +109,7 @@ function LocacoesPage() {
   const [finalizeTarget, setFinalizeTarget] = useState<ActiveRental | null>(null);
   const [cancelTarget, setCancelTarget] = useState<ActiveRental | null>(null);
   const [summary, setSummary] = useState<FinalSummary | null>(null);
-  const alertedRef = useRef<Set<string>>(new Set());
+  const alertedRef = useRef<Map<string, number>>(new Map());
   const audioCtxRef = useRef<AudioContext | null>(null);
 
   useEffect(() => {
