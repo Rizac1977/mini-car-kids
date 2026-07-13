@@ -101,6 +101,7 @@ function NovaLocacaoPage() {
                   id={v.id}
                   name={v.name}
                   photoPath={v.photo_url}
+                  status={v.status as "disponivel" | "em_locacao" | "manutencao" | "inativo"}
                   selected={vehicleId === v.id}
                   onSelect={() => setVehicleId(v.id)}
                 />
