@@ -295,16 +295,27 @@ function LocacoesPage() {
 
   useEffect(() => {
     const activeIds = new Set(rentals.map((r) => r.id));
-    for (const id of alertedRef.current) {
+    for (const id of Array.from(alertedRef.current.keys())) {
       if (!activeIds.has(id)) alertedRef.current.delete(id);
     }
+    const now = Date.now();
     for (const r of rentals) {
       if (r.paused_at) continue;
       const end = new Date(r.planned_end_at).getTime();
-      if (end - Date.now() <= 0 && !alertedRef.current.has(r.id)) {
-        alertedRef.current.add(r.id);
+      if (end - now > 0) continue;
+      const last = alertedRef.current.get(r.id);
+      // Primeiro alerta ao encerrar; depois repete a cada 60s até finalizar.
+      if (last === undefined || now - last >= 60_000) {
+        alertedRef.current.set(r.id, now);
         playAlarm();
-        toast.warning(`Tempo encerrado: ${r.vehicles?.name ?? "Veículo"}`, { duration: 8000 });
+        const overdueMs = now - end;
+        const msg = last === undefined
+          ? `Tempo encerrado: ${r.vehicles?.name ?? "Veículo"}`
+          : `Finalize a locação: ${r.vehicles?.name ?? "Veículo"} (${fmtOverdue(overdueMs)} em atraso)`;
+        toast.warning(msg, {
+          description: "Toque em Finalizar para encerrar a locação.",
+          duration: 10000,
+        });
       }
     }
   });
