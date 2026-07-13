@@ -10,8 +10,52 @@ import {
   CreditCard,
   Timer,
   LogOut,
+  AlertTriangle,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
+import { useQuery } from "@tanstack/react-query";
+import { supabase } from "@/integrations/supabase/client";
+
+function SubscriptionExpiryBanner() {
+  const { data } = useQuery({
+    queryKey: ["shell", "sub-expiry"],
+    queryFn: async () => {
+      const { data: u } = await supabase.auth.getUser();
+      if (!u.user) return null;
+      const { data } = await supabase
+        .from("subscriptions")
+        .select("current_period_end,status")
+        .eq("user_id", u.user.id)
+        .maybeSingle();
+      return data as { current_period_end: string; status: string } | null;
+    },
+    staleTime: 5 * 60 * 1000,
+  });
+  if (!data || data.status === "cancelada") return null;
+  const days = Math.ceil((new Date(data.current_period_end).getTime() - Date.now()) / 86400000);
+  if (days > 7) return null;
+  const overdue = days < 0;
+  return (
+    <Link
+      to="/app/assinatura"
+      className={cn(
+        "flex items-center gap-2 px-4 lg:px-8 py-2 text-sm font-medium border-b",
+        overdue
+          ? "bg-destructive/10 text-destructive border-destructive/30"
+          : "bg-warning/15 text-warning-foreground border-warning/30"
+      )}
+    >
+      <AlertTriangle className="h-4 w-4 shrink-0" />
+      <span className="truncate">
+        {overdue
+          ? `Sua assinatura venceu há ${Math.abs(days)} dia${Math.abs(days) === 1 ? "" : "s"}. Toque para regularizar.`
+          : days === 0
+          ? "Sua assinatura vence hoje. Toque para ver os detalhes."
+          : `Sua assinatura vence em ${days} dia${days === 1 ? "" : "s"}. Toque para ver os detalhes.`}
+      </span>
+    </Link>
+  );
+}
 
 const mobileNav = [
   { to: "/app", label: "Dashboard", icon: Home, exact: true },
@@ -109,6 +153,7 @@ export function AppShell({ children, title }: { children: ReactNode; title?: str
             </button>
           </div>
         </header>
+        <SubscriptionExpiryBanner />
         <main className="px-4 lg:px-8 pt-4 pb-32 lg:pb-10 max-w-6xl mx-auto">{children}</main>
       </div>
 
