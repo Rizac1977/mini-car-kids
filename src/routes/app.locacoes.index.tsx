@@ -394,6 +394,17 @@ function LocacoesPage() {
                   <Progress value={pct} className="h-2.5" />
                 </div>
 
+                {!isPaused && remainingMs === 0 && (
+                  <div className="mt-3 rounded-md border-2 border-destructive bg-destructive/10 p-3 text-center">
+                    <div className="text-sm font-bold text-destructive">
+                      ⚠️ Finalize esta locação
+                    </div>
+                    <div className="mt-0.5 text-xs text-destructive/90">
+                      Em atraso há {fmtOverdue(Date.now() - end)} — aviso sonoro a cada 1 min até finalizar.
+                    </div>
+                  </div>
+                )}
+
                 <div className="mt-4 grid grid-cols-2 gap-2">
                   <Button
                     variant="outline"
