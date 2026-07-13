@@ -135,7 +135,14 @@ export function ManageSubscriptionDialog({ open, onOpenChange, userId, current }
                 <button
                   key={p}
                   type="button"
-                  onClick={() => setPlan(p)}
+                  onClick={() => {
+                    setPlan(p);
+                    if (p === "trial") {
+                      if (status !== "trial") setStatus("trial");
+                    } else if (status === "trial") {
+                      setStatus("ativa");
+                    }
+                  }}
                   className={`px-3 h-9 rounded-full text-xs font-medium capitalize border ${
                     plan === p
                       ? "bg-foreground text-background border-foreground"
@@ -145,6 +152,7 @@ export function ManageSubscriptionDialog({ open, onOpenChange, userId, current }
                   {p}
                 </button>
               ))}
+
             </div>
           </div>
 
