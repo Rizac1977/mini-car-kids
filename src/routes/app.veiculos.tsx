@@ -50,9 +50,11 @@ type FormState = {
   purchase_date: string;
   photo_url: string | null;
   photo_file: File | null;
+  status: VehicleStatus;
 };
 
 const emptyForm: FormState = {
+  status: "disponivel",
   name: "",
   purchase_date: new Date().toISOString().slice(0, 10),
   photo_url: null,
