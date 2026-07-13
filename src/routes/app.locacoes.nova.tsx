@@ -58,6 +58,30 @@ function NovaLocacaoPage() {
   const startRental = useMutation({
     mutationFn: async () => {
       if (!user || !vehicleId || !isValid) throw new Error("Dados incompletos");
+
+      // Guard extra: veículo precisa estar disponível
+      const { data: vRow, error: vErr } = await supabase
+        .from("vehicles")
+        .select("status")
+        .eq("id", vehicleId)
+        .maybeSingle();
+      if (vErr) throw vErr;
+      if (!vRow) throw new Error("Veículo não encontrado.");
+      if (vRow.status !== "disponivel") {
+        throw new Error("Este veículo não está disponível para locação no momento.");
+      }
+
+      // Guard extra: não pode existir outra locação ativa para o mesmo veículo
+      const { count, error: cErr } = await supabase
+        .from("rentals")
+        .select("id", { count: "exact", head: true })
+        .eq("vehicle_id", vehicleId)
+        .eq("status", "ativa");
+      if (cErr) throw cErr;
+      if ((count ?? 0) > 0) {
+        throw new Error("Este veículo já possui uma locação ativa.");
+      }
+
       const startedAt = new Date();
       const plannedEnd = new Date(startedAt.getTime() + minutesNum * 60000);
       const { error } = await supabase.from("rentals").insert({
@@ -69,12 +93,19 @@ function NovaLocacaoPage() {
         planned_end_at: plannedEnd.toISOString(),
         status: "ativa",
       });
-      if (error) throw error;
+      if (error) {
+        // Índice único do banco: uma locação ativa por veículo
+        if (error.code === "23505" || /rentals_one_active_per_vehicle/i.test(error.message)) {
+          throw new Error("Este veículo já possui uma locação ativa.");
+        }
+        throw error;
+      }
     },
     onSuccess: () => {
       toast.success("Locação iniciada!");
       qc.invalidateQueries({ queryKey: ["rentals-ativas"] });
       qc.invalidateQueries({ queryKey: ["vehicles"] });
+      qc.invalidateQueries({ queryKey: ["vehicles-nova"] });
       navigate({ to: "/app/locacoes" });
     },
     onError: (e: Error) => toast.error(e.message || "Não foi possível iniciar a locação."),
