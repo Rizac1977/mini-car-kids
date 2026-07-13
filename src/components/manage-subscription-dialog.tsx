@@ -58,6 +58,13 @@ export function ManageSubscriptionDialog({ open, onOpenChange, userId, current }
     setEndDate(toDateInputValue(base.toISOString()));
   }
 
+  function endTrialNow() {
+    setPlan("trial");
+    setStatus("cancelada");
+    setEndDate(toDateInputValue(new Date().toISOString()));
+  }
+
+
   const save = useMutation({
     mutationFn: async () => {
       const { data: userData } = await supabase.auth.getUser();
@@ -173,7 +180,7 @@ export function ManageSubscriptionDialog({ open, onOpenChange, userId, current }
             <div className="flex flex-wrap gap-2">
               {[7, 15, 30, 90].map((n) => (
                 <button
-                  key={n}
+                  key={`plus-${n}`}
                   type="button"
                   onClick={() => addDays(n)}
                   className="px-3 h-8 rounded-full text-xs font-medium border bg-card text-foreground border-border"
@@ -181,8 +188,47 @@ export function ManageSubscriptionDialog({ open, onOpenChange, userId, current }
                   +{n} dias
                 </button>
               ))}
+              {[7, 15, 30].map((n) => (
+                <button
+                  key={`minus-${n}`}
+                  type="button"
+                  onClick={() => addDays(-n)}
+                  className="px-3 h-8 rounded-full text-xs font-medium border bg-card text-foreground border-border"
+                >
+                  −{n} dias
+                </button>
+              ))}
             </div>
           </div>
+
+          {plan === "trial" ? (
+            <div className="rounded-lg border border-border bg-muted/40 p-3 space-y-2">
+              <div className="text-xs font-semibold">Período de avaliação</div>
+              <p className="text-xs text-muted-foreground">
+                Ajuste rapidamente os dias de teste ou encerre a avaliação agora.
+              </p>
+              <div className="flex flex-wrap gap-2">
+                {[1, 3, 7, 15].map((n) => (
+                  <button
+                    key={`trial-plus-${n}`}
+                    type="button"
+                    onClick={() => addDays(n)}
+                    className="px-3 h-8 rounded-full text-xs font-medium border bg-card text-foreground border-border"
+                  >
+                    +{n} dias de avaliação
+                  </button>
+                ))}
+                <button
+                  type="button"
+                  onClick={endTrialNow}
+                  className="px-3 h-8 rounded-full text-xs font-semibold border bg-destructive text-destructive-foreground border-destructive"
+                >
+                  Encerrar avaliação agora
+                </button>
+              </div>
+            </div>
+          ) : null}
+
         </div>
 
         <DialogFooter className="gap-2">
