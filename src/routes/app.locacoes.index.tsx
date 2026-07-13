@@ -90,6 +90,14 @@ function fmtMinutes(min: number) {
   return `${h}h ${m}min`;
 }
 
+function fmtOverdue(ms: number) {
+  const totalSec = Math.floor(ms / 1000);
+  const m = Math.floor(totalSec / 60);
+  const s = totalSec % 60;
+  if (m === 0) return `${s}s`;
+  return `${m}min ${String(s).padStart(2, "0")}s`;
+}
+
 export const Route = createFileRoute("/app/locacoes/")({
   head: () => ({
     meta: [
