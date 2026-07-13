@@ -11,9 +11,16 @@ export const getRouter = () => {
   const queryClient = new QueryClient({
     defaultOptions: {
       queries: {
-        staleTime: 60_000,
+        // staleTime 0 + refetchOnMount garante que ao trocar de página
+        // (remontagem do componente) os dados sejam revalidados no servidor,
+        // evitando ver informações defasadas após iniciar/finalizar locações,
+        // cadastrar veículos, etc. gcTime mantém a UI instantânea enquanto
+        // o refetch em background acontece.
+        staleTime: 0,
         gcTime: 5 * 60_000,
-        refetchOnWindowFocus: false,
+        refetchOnMount: "always",
+        refetchOnWindowFocus: true,
+        refetchOnReconnect: true,
         retry: 1,
       },
       mutations: {
