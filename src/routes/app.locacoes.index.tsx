@@ -109,11 +109,41 @@ function LocacoesPage() {
   const [finalizeTarget, setFinalizeTarget] = useState<ActiveRental | null>(null);
   const [cancelTarget, setCancelTarget] = useState<ActiveRental | null>(null);
   const [summary, setSummary] = useState<FinalSummary | null>(null);
+  const alertedRef = useRef<Set<string>>(new Set());
+  const audioCtxRef = useRef<AudioContext | null>(null);
 
   useEffect(() => {
     const t = setInterval(() => setTick((n) => n + 1), 1000);
     return () => clearInterval(t);
   }, []);
+
+  function playAlarm() {
+    try {
+      const AC = window.AudioContext || (window as unknown as { webkitAudioContext: typeof AudioContext }).webkitAudioContext;
+      if (!AC) return;
+      if (!audioCtxRef.current) audioCtxRef.current = new AC();
+      const ctx = audioCtxRef.current;
+      if (ctx.state === "suspended") ctx.resume().catch(() => {});
+      const now = ctx.currentTime;
+      // 3 beeps
+      for (let i = 0; i < 3; i++) {
+        const t0 = now + i * 0.5;
+        const osc = ctx.createOscillator();
+        const gain = ctx.createGain();
+        osc.type = "square";
+        osc.frequency.setValueAtTime(880, t0);
+        gain.gain.setValueAtTime(0.0001, t0);
+        gain.gain.exponentialRampToValueAtTime(0.35, t0 + 0.02);
+        gain.gain.exponentialRampToValueAtTime(0.0001, t0 + 0.35);
+        osc.connect(gain).connect(ctx.destination);
+        osc.start(t0);
+        osc.stop(t0 + 0.4);
+      }
+      if (navigator.vibrate) navigator.vibrate([250, 120, 250, 120, 250]);
+    } catch {
+      // ignore
+    }
+  }
 
   const { data: rentals = [], isLoading } = useQuery({
     queryKey: ["rentals-ativas", user?.id],
