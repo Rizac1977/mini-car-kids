@@ -74,7 +74,10 @@ function AssinaturaPage() {
     );
   }
 
-  const visual = statusVisual[data.status];
+  const effectiveStatus: Sub["status"] =
+    data.status === "trial" && data.plan !== "trial" ? "ativa" : data.status;
+  const visual = statusVisual[effectiveStatus];
+
   const Icon = visual.icon;
   const daysLeft = Math.ceil((new Date(data.current_period_end).getTime() - Date.now()) / 86400000);
   const overdue = daysLeft < 0;

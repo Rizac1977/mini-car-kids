@@ -72,11 +72,18 @@ export function ManageSubscriptionDialog({ open, onOpenChange, userId, current }
       if (!adminId) throw new Error("Sessão expirada");
 
       const endIso = new Date(endDate + "T23:59:59").toISOString();
+      const normalizedStatus: SubStatus =
+        plan !== "trial" && status === "trial"
+          ? "ativa"
+          : plan === "trial" && status !== "trial" && status !== "cancelada"
+            ? "trial"
+            : (status as SubStatus);
       const payload = {
         plan,
-        status: status as SubStatus,
+        status: normalizedStatus,
         current_period_end: endIso,
       };
+
 
       const { data: existing } = await supabase
         .from("subscriptions")
@@ -135,7 +142,14 @@ export function ManageSubscriptionDialog({ open, onOpenChange, userId, current }
                 <button
                   key={p}
                   type="button"
-                  onClick={() => setPlan(p)}
+                  onClick={() => {
+                    setPlan(p);
+                    if (p === "trial") {
+                      if (status !== "trial") setStatus("trial");
+                    } else if (status === "trial") {
+                      setStatus("ativa");
+                    }
+                  }}
                   className={`px-3 h-9 rounded-full text-xs font-medium capitalize border ${
                     plan === p
                       ? "bg-foreground text-background border-foreground"
@@ -145,6 +159,7 @@ export function ManageSubscriptionDialog({ open, onOpenChange, userId, current }
                   {p}
                 </button>
               ))}
+
             </div>
           </div>
 
