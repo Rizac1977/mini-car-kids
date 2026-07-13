@@ -92,7 +92,7 @@ export function ApproveOwnerDialog({ open, onOpenChange, userId, ownerName, onAp
         <DialogHeader>
           <DialogTitle>Aprovar cadastro</DialogTitle>
           <DialogDescription>
-            {ownerName ? `${ownerName} — d` : "D"}efina o período de teste gratuito.
+            {ownerName ? `${ownerName} — defina` : "Defina"} o período de teste gratuito.
           </DialogDescription>
         </DialogHeader>
         <div className="space-y-3 py-2">
