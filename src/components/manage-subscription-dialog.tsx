@@ -26,7 +26,9 @@ type Props = {
   } | null;
 };
 
-const PLANS = ["trial", "mensal", "anual"] as const;
+const PLANS = ["trial", "mensal", "trimestral", "anual"] as const;
+const PLAN_DAYS: Record<string, number> = { mensal: 30, trimestral: 90, anual: 365 };
+
 const STATUSES = ["trial", "ativa", "inadimplente", "cancelada"] as const;
 type SubStatus = (typeof STATUSES)[number];
 
@@ -143,13 +145,24 @@ export function ManageSubscriptionDialog({ open, onOpenChange, userId, current }
                   key={p}
                   type="button"
                   onClick={() => {
+                    const prevPlan = plan;
                     setPlan(p);
                     if (p === "trial") {
                       if (status !== "trial") setStatus("trial");
-                    } else if (status === "trial") {
-                      setStatus("ativa");
+                    } else {
+                      if (status === "trial") setStatus("ativa");
+                      // Ao ativar um plano pago vindo do trial (ou trocar de plano pago),
+                      // recalcula o vencimento a partir de hoje — dias restantes do
+                      // teste não são somados ao período pago.
+                      if (prevPlan !== p) {
+                        const days = PLAN_DAYS[p] ?? 30;
+                        const base = new Date();
+                        base.setDate(base.getDate() + days);
+                        setEndDate(toDateInputValue(base.toISOString()));
+                      }
                     }
                   }}
+
                   className={`px-3 h-9 rounded-full text-xs font-medium capitalize border ${
                     plan === p
                       ? "bg-foreground text-background border-foreground"
