@@ -50,9 +50,11 @@ type FormState = {
   purchase_date: string;
   photo_url: string | null;
   photo_file: File | null;
+  status: VehicleStatus;
 };
 
 const emptyForm: FormState = {
+  status: "disponivel",
   name: "",
   purchase_date: new Date().toISOString().slice(0, 10),
   photo_url: null,
@@ -170,6 +172,7 @@ function VeiculosPage() {
         name: f.name.trim(),
         purchase_date: f.purchase_date || null,
         photo_url,
+        status: f.status,
       };
 
       if (f.id) {
@@ -274,6 +277,7 @@ function VeiculosPage() {
                     purchase_date: v.purchase_date ?? "",
                     photo_url: v.photo_url,
                     photo_file: null,
+                    status: v.status,
                   })
                 }
                 onDelete={() => setConfirmDelete(v)}
@@ -472,6 +476,32 @@ function VehicleForm({
           value={form.purchase_date}
           onChange={(e) => setForm({ ...form, purchase_date: e.target.value })}
         />
+      </div>
+
+      <div className="space-y-1.5">
+        <Label>Situação do veículo</Label>
+        {form.status === "em_locacao" ? (
+          <div className="text-sm text-muted-foreground border border-border rounded-lg px-3 py-2 bg-muted/40">
+            Em locação — a situação será atualizada automaticamente ao finalizar.
+          </div>
+        ) : (
+          <div className="grid grid-cols-3 gap-2">
+            {(["disponivel", "manutencao", "inativo"] as const).map((s) => (
+              <button
+                key={s}
+                type="button"
+                onClick={() => setForm({ ...form, status: s })}
+                className={`h-11 rounded-lg text-sm font-medium border transition ${
+                  form.status === s
+                    ? "bg-foreground text-background border-foreground"
+                    : "bg-card text-foreground border-border"
+                }`}
+              >
+                {statusMeta[s].label}
+              </button>
+            ))}
+          </div>
+        )}
       </div>
     </div>
   );
