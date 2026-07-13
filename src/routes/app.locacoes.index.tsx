@@ -293,6 +293,22 @@ function LocacoesPage() {
     onError: (e: Error) => toast.error(e.message),
   });
 
+  useEffect(() => {
+    const activeIds = new Set(rentals.map((r) => r.id));
+    for (const id of alertedRef.current) {
+      if (!activeIds.has(id)) alertedRef.current.delete(id);
+    }
+    for (const r of rentals) {
+      if (r.paused_at) continue;
+      const end = new Date(r.planned_end_at).getTime();
+      if (end - Date.now() <= 0 && !alertedRef.current.has(r.id)) {
+        alertedRef.current.add(r.id);
+        playAlarm();
+        toast.warning(`Tempo encerrado: ${r.vehicles?.name ?? "Veículo"}`, { duration: 8000 });
+      }
+    }
+  });
+
   return (
     <AppShell title="Locações ativas">
       <div className="mb-4">
