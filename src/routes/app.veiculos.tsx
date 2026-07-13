@@ -277,6 +277,7 @@ function VeiculosPage() {
                     purchase_date: v.purchase_date ?? "",
                     photo_url: v.photo_url,
                     photo_file: null,
+                    status: v.status,
                   })
                 }
                 onDelete={() => setConfirmDelete(v)}
