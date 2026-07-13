@@ -477,6 +477,32 @@ function VehicleForm({
           onChange={(e) => setForm({ ...form, purchase_date: e.target.value })}
         />
       </div>
+
+      <div className="space-y-1.5">
+        <Label>Situação do veículo</Label>
+        {form.status === "em_locacao" ? (
+          <div className="text-sm text-muted-foreground border border-border rounded-lg px-3 py-2 bg-muted/40">
+            Em locação — a situação será atualizada automaticamente ao finalizar.
+          </div>
+        ) : (
+          <div className="grid grid-cols-3 gap-2">
+            {(["disponivel", "manutencao", "inativo"] as const).map((s) => (
+              <button
+                key={s}
+                type="button"
+                onClick={() => setForm({ ...form, status: s })}
+                className={`h-11 rounded-lg text-sm font-medium border transition ${
+                  form.status === s
+                    ? "bg-foreground text-background border-foreground"
+                    : "bg-card text-foreground border-border"
+                }`}
+              >
+                {statusMeta[s].label}
+              </button>
+            ))}
+          </div>
+        )}
+      </div>
     </div>
   );
 }
