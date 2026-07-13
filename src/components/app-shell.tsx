@@ -153,6 +153,7 @@ export function AppShell({ children, title }: { children: ReactNode; title?: str
             </button>
           </div>
         </header>
+        <SubscriptionExpiryBanner />
         <main className="px-4 lg:px-8 pt-4 pb-32 lg:pb-10 max-w-6xl mx-auto">{children}</main>
       </div>
 
