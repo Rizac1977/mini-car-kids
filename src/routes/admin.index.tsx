@@ -275,3 +275,96 @@ function AdminDashboard() {
 }
 
 export { AdminShell };
+
+type Vencimento = {
+  user_id: string;
+  current_period_end: string;
+  status: string;
+  plan: string;
+};
+
+function UpcomingRenewalsCard() {
+  const { data } = useQuery({
+    queryKey: ["admin", "vencimentos"],
+    queryFn: async () => {
+      const in30 = new Date();
+      in30.setDate(in30.getDate() + 30);
+      const past = new Date();
+      past.setDate(past.getDate() - 30);
+      const { data: subs, error } = await supabase
+        .from("subscriptions")
+        .select("user_id,current_period_end,status,plan")
+        .gte("current_period_end", past.toISOString())
+        .lte("current_period_end", in30.toISOString())
+        .order("current_period_end", { ascending: true });
+      if (error) throw error;
+      const list = (subs ?? []) as Vencimento[];
+      const ids = Array.from(new Set(list.map((s) => s.user_id)));
+      if (ids.length === 0) return [] as (Vencimento & { name: string })[];
+      const { data: profs } = await supabase
+        .from("profiles")
+        .select("user_id,full_name,business_name")
+        .in("user_id", ids);
+      const map = new Map(
+        ((profs ?? []) as { user_id: string; full_name: string; business_name: string | null }[]).map((p) => [
+          p.user_id,
+          p.business_name || p.full_name,
+        ]),
+      );
+      return list.map((s) => ({ ...s, name: map.get(s.user_id) ?? "—" }));
+    },
+  });
+
+  const rows = data ?? [];
+  if (rows.length === 0) return null;
+
+  return (
+    <Card className="p-4">
+      <div className="font-semibold text-sm mb-3 flex items-center gap-2">
+        <AlertTriangle className="h-4 w-4" /> Vencimentos próximos
+      </div>
+      <div className="space-y-2">
+        {rows.map((r) => {
+          const days = Math.ceil(
+            (new Date(r.current_period_end).getTime() - Date.now()) / 86400000,
+          );
+          const overdue = days < 0;
+          return (
+            <Link
+              key={r.user_id}
+              to="/admin/donos/$id"
+              params={{ id: r.user_id }}
+              className="flex items-center justify-between gap-2 rounded-lg border p-3 text-sm hover:bg-muted/40"
+            >
+              <div className="min-w-0">
+                <div className="font-medium truncate">{r.name}</div>
+                <div className="text-xs text-muted-foreground capitalize">
+                  {r.plan} · {r.status}
+                </div>
+              </div>
+              <div className="text-right shrink-0">
+                <div className="text-xs text-muted-foreground">
+                  {new Date(r.current_period_end).toLocaleDateString("pt-BR")}
+                </div>
+                <div
+                  className={cn(
+                    "text-xs font-semibold",
+                    overdue
+                      ? "text-destructive"
+                      : days <= 7
+                        ? "text-warning-foreground"
+                        : "text-muted-foreground",
+                  )}
+                >
+                  {overdue
+                    ? `vencida há ${Math.abs(days)} dia${Math.abs(days) === 1 ? "" : "s"}`
+                    : `vence em ${days} dia${days === 1 ? "" : "s"}`}
+                </div>
+              </div>
+            </Link>
+          );
+        })}
+      </div>
+    </Card>
+  );
+}
