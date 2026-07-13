@@ -172,6 +172,7 @@ function VeiculosPage() {
         name: f.name.trim(),
         purchase_date: f.purchase_date || null,
         photo_url,
+        status: f.status,
       };
 
       if (f.id) {
