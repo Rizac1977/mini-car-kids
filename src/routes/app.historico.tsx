@@ -5,7 +5,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { currency, dateBR, timeBR } from "@/lib/mock-data";
-import { Clock, Download, Loader2 } from "lucide-react";
+import { Clock, Download, Loader2, ChevronDown } from "lucide-react";
 import { useAuth } from "@/hooks/use-auth";
 import { supabase } from "@/integrations/supabase/client";
 import { useQuery } from "@tanstack/react-query";
