@@ -137,6 +137,9 @@ function RootComponent() {
     <QueryClientProvider client={queryClient}>
       {/* Required: nested routes render here. Removing <Outlet /> breaks all child routes. */}
       <Outlet />
+      <footer className="w-full text-center text-xs text-muted-foreground py-4 pb-20 lg:pb-4 safe-bottom">
+        Deus é Fiel!
+      </footer>
     </QueryClientProvider>
   );
 }
