@@ -257,3 +257,110 @@ function HistoryPhoto({ path, name }: { path: string | null; name: string }) {
   if (src) return <img loading="lazy" decoding="async" src={src} alt={name} className="h-12 w-12 rounded-xl object-cover shrink-0" />;
   return <div className="h-12 w-12 rounded-xl bg-muted grid place-items-center text-2xl shrink-0">🚗</div>;
 }
+
+type DayGroup = {
+  key: string;
+  label: string;
+  rows: HistoryRow[];
+  total: number;
+  count: number;
+  canceled: number;
+};
+
+function GroupedHistory({ rows }: { rows: HistoryRow[] }) {
+  const groups = useMemo<DayGroup[]>(() => {
+    const map = new Map<string, DayGroup>();
+    for (const r of rows) {
+      const when = r.ended_at ?? r.started_at;
+      const d = new Date(when);
+      const key = `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}-${String(d.getDate()).padStart(2, "0")}`;
+      let g = map.get(key);
+      if (!g) {
+        g = { key, label: dateBR(when), rows: [], total: 0, count: 0, canceled: 0 };
+        map.set(key, g);
+      }
+      g.rows.push(r);
+      if (r.status === "finalizada") {
+        g.total += Number(r.amount);
+        g.count += 1;
+      } else {
+        g.canceled += 1;
+      }
+    }
+    return Array.from(map.values());
+  }, [rows]);
+
+  const [open, setOpen] = useState<Record<string, boolean>>(() => {
+    // Primeiro grupo aberto por padrão
+    return groups[0] ? { [groups[0].key]: true } : {};
+  });
+
+  const toggle = (k: string) => setOpen((o) => ({ ...o, [k]: !o[k] }));
+
+  return (
+    <div className="space-y-2">
+      {groups.map((g, idx) => {
+        const isOpen = open[g.key] ?? idx === 0;
+        return (
+          <Card key={g.key} className="overflow-hidden">
+            <button
+              type="button"
+              onClick={() => toggle(g.key)}
+              className="w-full flex items-center gap-3 px-4 py-3 text-left hover:bg-muted/40 transition"
+            >
+              <ChevronDown
+                className={`h-4 w-4 text-muted-foreground shrink-0 transition-transform ${isOpen ? "rotate-0" : "-rotate-90"}`}
+              />
+              <div className="flex-1 min-w-0">
+                <div className="font-semibold text-sm">{g.label}</div>
+                <div className="text-xs text-muted-foreground">
+                  {g.count} {g.count === 1 ? "locação" : "locações"}
+                  {g.canceled > 0 && ` · ${g.canceled} canc.`}
+                </div>
+              </div>
+              <div className="text-right shrink-0">
+                <div className="text-sm font-bold text-primary">{currency(g.total)}</div>
+              </div>
+            </button>
+
+            {isOpen && (
+              <div className="border-t border-border divide-y divide-border">
+                {g.rows.map((h) => {
+                  const isCanceled = h.status === "cancelada";
+                  return (
+                    <div key={h.id} className="flex gap-3 px-4 py-3">
+                      <HistoryPhoto path={h.vehicles?.photo_url ?? null} name={h.vehicles?.name ?? "Veículo"} />
+                      <div className="flex-1 min-w-0">
+                        <div className="flex items-start justify-between gap-2">
+                          <div className="min-w-0">
+                            <div className="font-medium text-sm truncate">{h.vehicles?.name ?? "Veículo"}</div>
+                            <div className="text-[11px] text-muted-foreground mt-0.5">
+                              {timeBR(h.started_at)}{h.ended_at ? ` – ${timeBR(h.ended_at)}` : ""}
+                            </div>
+                            {isCanceled && (
+                              <span className="inline-block mt-1 text-[10px] font-semibold uppercase tracking-wide text-destructive bg-destructive/10 rounded-full px-2 py-0.5">
+                                Cancelada
+                              </span>
+                            )}
+                          </div>
+                          <div className="text-right shrink-0">
+                            <div className={`text-sm font-bold ${isCanceled ? "text-muted-foreground line-through" : "text-primary"}`}>
+                              {currency(Number(h.amount))}
+                            </div>
+                            <div className="text-[11px] text-muted-foreground flex items-center gap-1 justify-end">
+                              <Clock className="h-3 w-3" /> {h.planned_minutes} min
+                            </div>
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+                  );
+                })}
+              </div>
+            )}
+          </Card>
+        );
+      })}
+    </div>
+  );
+}
