@@ -245,44 +245,7 @@ function HistoricoPage() {
         ) : rows.length === 0 ? (
           <Card className="p-6 text-center text-sm text-muted-foreground">Nenhuma locação encontrada no período.</Card>
         ) : (
-          <div className="space-y-3">
-            {rows.map((h) => {
-              const when = h.ended_at ?? h.started_at;
-              const isCanceled = h.status === "cancelada";
-              return (
-                <Card key={h.id} className="p-4">
-                  <div className="flex gap-3">
-                    <HistoryPhoto path={h.vehicles?.photo_url ?? null} name={h.vehicles?.name ?? "Veículo"} />
-
-                    <div className="flex-1 min-w-0">
-                      <div className="flex items-start justify-between gap-2">
-                        <div className="min-w-0">
-                          <div className="font-semibold truncate">{h.vehicles?.name ?? "Veículo"}</div>
-                          {isCanceled && (
-                            <span className="inline-block mt-1 text-[10px] font-semibold uppercase tracking-wide text-destructive bg-destructive/10 rounded-full px-2 py-0.5">
-                              Cancelada
-                            </span>
-                          )}
-                        </div>
-
-                        <div className="text-right">
-                          <div className={`font-bold ${isCanceled ? "text-muted-foreground line-through" : "text-primary"}`}>
-                            {currency(Number(h.amount))}
-                          </div>
-                          <div className="text-xs text-muted-foreground flex items-center gap-1 justify-end">
-                            <Clock className="h-3 w-3" /> {h.planned_minutes} min
-                          </div>
-                        </div>
-                      </div>
-                      <div className="mt-2 text-xs text-muted-foreground">
-                        {dateBR(when)} · {timeBR(h.started_at)}{h.ended_at ? ` – ${timeBR(h.ended_at)}` : ""}
-                      </div>
-                    </div>
-                  </div>
-                </Card>
-              );
-            })}
-          </div>
+          <GroupedHistory rows={rows} />
         )}
       </div>
     </AppShell>
