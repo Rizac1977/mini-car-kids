@@ -125,7 +125,7 @@ function DonoDetailPage() {
       const { data, error } = await supabase
         .from("profiles")
         .select(
-          "id,user_id,full_name,business_name,phone,city,state,profile_photo_url,account_status,admin_notes,created_at"
+          "id,user_id,full_name,business_name,phone,city,state,profile_photo_url,account_status,created_at"
         )
         .eq("user_id", userId)
         .maybeSingle();
@@ -133,6 +133,20 @@ function DonoDetailPage() {
       return data as Profile | null;
     },
   });
+
+  const { data: adminNote } = useQuery({
+    queryKey: ["admin", "dono", userId, "admin-notes"],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from("profile_admin_notes")
+        .select("user_id,notes")
+        .eq("user_id", userId)
+        .maybeSingle();
+      if (error) throw error;
+      return (data ?? null) as AdminNote | null;
+    },
+  });
+
 
   const { data: sub } = useQuery({
     queryKey: ["admin", "dono", userId, "sub"],
