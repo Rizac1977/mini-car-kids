@@ -1,2 +1,3 @@
 Atualização para novo deploy 3.
 Rebuild Cloudflare com novo Supabase - 14/07/2026
+Sincronizar correção profile_admin_notes - 14/07/2026

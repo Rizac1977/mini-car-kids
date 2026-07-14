@@ -44,27 +44,6 @@ export type Database = {
         }
         Relationships: []
       }
-      profile_admin_notes: {
-        Row: {
-          user_id: string
-          notes: string | null
-          created_at: string
-          updated_at: string
-        }
-        Insert: {
-          user_id: string
-          notes?: string | null
-          created_at?: string
-          updated_at?: string
-        }
-        Update: {
-          user_id?: string
-          notes?: string | null
-          created_at?: string
-          updated_at?: string
-        }
-        Relationships: []
-      }
       profiles: {
         Row: {
           account_status: Database["public"]["Enums"]["account_status"]
