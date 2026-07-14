@@ -219,34 +219,38 @@ function DonoDetailPage() {
   }, [profile?.profile_photo_url]);
 
   useEffect(() => {
-    if (profile) setNotes(profile.admin_notes ?? "");
-  }, [profile]);
+    setNotes(adminNote?.notes ?? "");
+  }, [adminNote]);
 
   const saveNotes = useMutation({
     mutationFn: async () => {
       const { data: userData } = await supabase.auth.getUser();
       const adminId = userData.user?.id;
       if (!adminId) throw new Error("Sessão expirada");
+      const trimmed = notes.trim() || null;
       const { error } = await supabase
-        .from("profiles")
-        .update({ admin_notes: notes || null })
-        .eq("user_id", userId);
+        .from("profile_admin_notes")
+        .upsert(
+          { user_id: userId, notes: trimmed },
+          { onConflict: "user_id" }
+        );
       if (error) throw error;
       await supabase.from("administrative_logs").insert({
         administrator_id: adminId,
         affected_user_id: userId,
         action: "Observações atualizadas",
-        previous_data: { admin_notes: profile?.admin_notes ?? null },
-        new_data: { admin_notes: notes || null },
+        previous_data: { admin_notes: adminNote?.notes ?? null },
+        new_data: { admin_notes: trimmed },
       });
     },
     onSuccess: () => {
       toast.success("Observações salvas");
-      void qc.invalidateQueries({ queryKey: ["admin", "dono", userId] });
+      void qc.invalidateQueries({ queryKey: ["admin", "dono", userId, "admin-notes"] });
       void qc.invalidateQueries({ queryKey: ["admin", "dono", userId, "logs"] });
     },
     onError: (e: Error) => toast.error(e.message || "Erro ao salvar"),
   });
+
 
   const stats = useMemo(() => {
     const list = rentals ?? [];
