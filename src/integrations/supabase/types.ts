@@ -46,22 +46,25 @@ export type Database = {
       }
       profile_admin_notes: {
         Row: {
-          user_id: string
-          notes: string | null
           created_at: string
+          id: string
+          notes: string | null
           updated_at: string
+          user_id: string
         }
         Insert: {
-          user_id: string
-          notes?: string | null
           created_at?: string
+          id?: string
+          notes?: string | null
           updated_at?: string
+          user_id: string
         }
         Update: {
-          user_id?: string
-          notes?: string | null
           created_at?: string
+          id?: string
+          notes?: string | null
           updated_at?: string
+          user_id?: string
         }
         Relationships: []
       }
