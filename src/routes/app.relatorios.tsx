@@ -352,10 +352,10 @@ function BreakdownCard({ rows }: { rows: RentalRow[] }) {
         <>
           <div className="flex items-end gap-1.5 h-36">
             {buckets.map((b, i) => (
-              <div key={i} className="flex-1 flex flex-col items-center gap-1 min-w-0">
+              <div key={i} className="flex-1 h-full flex flex-col justify-end items-center min-w-0">
                 <div
                   className="w-full rounded-t-md bg-primary transition-all"
-                  style={{ height: `${Math.max(3, (b.value / max) * 100)}%` }}
+                  style={{ height: `${b.value === 0 ? 2 : Math.max(4, (b.value / max) * 100)}%` }}
                   title={`${b.label}: ${currency(b.value)}`}
                 />
               </div>
