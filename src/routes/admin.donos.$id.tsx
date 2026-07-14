@@ -592,7 +592,7 @@ function DonoDetailPage() {
             <Button
               size="sm"
               className="gap-1"
-              disabled={saveNotes.isPending || notes === (profile.admin_notes ?? "")}
+              disabled={saveNotes.isPending || notes === (adminNote?.notes ?? "")}
               onClick={() => saveNotes.mutate()}
             >
               <Save className="h-3.5 w-3.5" /> Salvar observações
