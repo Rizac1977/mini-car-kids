@@ -71,7 +71,6 @@ export type Database = {
       profiles: {
         Row: {
           account_status: Database["public"]["Enums"]["account_status"]
-          admin_notes: string | null
           business_name: string | null
           city: string | null
           created_at: string
@@ -85,7 +84,6 @@ export type Database = {
         }
         Insert: {
           account_status?: Database["public"]["Enums"]["account_status"]
-          admin_notes?: string | null
           business_name?: string | null
           city?: string | null
           created_at?: string
@@ -99,7 +97,6 @@ export type Database = {
         }
         Update: {
           account_status?: Database["public"]["Enums"]["account_status"]
-          admin_notes?: string | null
           business_name?: string | null
           city?: string | null
           created_at?: string
